@@ -32,6 +32,15 @@ const routes = [
     redirect: '/',
   },
   {
+    path: '/article/:id',
+    name: 'ArticleDetail',
+    component: () => import('@/views/articleDetail.vue'),
+    meta: {
+      public: true,
+      title: '文章详情',
+    },
+  },
+  {
     path: '/auth',
     component: AuthLayout,
     children: [
@@ -81,6 +90,8 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
+
+  document.title = to.meta.title || '二次元记录站'
 
   if (!token) {
     if (to.meta.requiresAuth || to.path.startsWith('/user')) {

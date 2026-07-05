@@ -163,26 +163,6 @@
       </div>
     </footer>
 
-    <el-dialog v-model="articleDialogVisible" width="820px" class="article-dialog" destroy-on-close>
-      <template #header>
-        <div class="dialog-head">
-          <span>{{ getCategoryName(activeArticle?.categoryId) }}</span>
-          <h2>{{ activeArticle?.title }}</h2>
-        </div>
-      </template>
-      <el-skeleton v-if="detailLoading" :rows="8" animated />
-      <article v-else class="article-detail">
-        <img
-          v-if="activeArticle"
-          :src="getImage(activeArticle)"
-          :alt="activeArticle.title"
-          @error="handleImageError"
-        />
-        <p v-if="activeArticle?.summary" class="summary">{{ activeArticle.summary }}</p>
-        <div class="content" v-html="activeArticle?.content"></div>
-      </article>
-    </el-dialog>
-
     <div v-if="confirmStep" class="confirm-overlay" @click="closeConfirm">
       <div class="confirm-box" :class="`step-${confirmStep}`" @click.stop>
         <p>{{ confirmText }}</p>
@@ -198,16 +178,13 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'v
 import { dayjs } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { Clock, DataLine, Star } from '@element-plus/icons-vue'
-import { getArticleCategoryTree, getArticleDetail, getArticleList } from '@/api/frontend'
+import { getArticleCategoryTree, getArticleList } from '@/api/frontend'
 import { getArticleCover, resolveFileUrl } from '@/utils/fileUrl'
 
 const router = useRouter()
 const loadingScreen = ref(true)
 const articleLoading = ref(false)
 const sideLoading = ref(false)
-const detailLoading = ref(false)
-const articleDialogVisible = ref(false)
-const activeArticle = ref(null)
 const articles = ref([])
 const sideArticles = ref([])
 const categories = ref([])
@@ -325,12 +302,17 @@ const getCategoryName = (categoryId) => {
 const formatDate = (date) => date ? dayjs(date).format('YYYY-MM-DD') : '未发布'
 
 const fetchCategories = async () => {
-  const res = await getArticleCategoryTree()
-  const data = res?.data || res || []
-  categories.value = data.map((item) => ({
-    label: item.categoryName || item.name,
-    value: item.id,
-  }))
+  try {
+    const res = await getArticleCategoryTree()
+    const data = res?.data || res || []
+    categories.value = data.map((item) => ({
+      label: item.categoryName || item.name,
+      value: item.id,
+    }))
+  } catch (error) {
+    console.error('Failed to load article categories:', error)
+    categories.value = []
+  }
 }
 
 const fetchArticles = async () => {
@@ -349,6 +331,10 @@ const fetchArticles = async () => {
     articles.value = Array.isArray(data.records) ? data.records : []
     pagination.total = Number(data.total ?? articles.value.length)
     pagination.currentPage = Number(data.current ?? data.currentPage ?? pagination.currentPage)
+  } catch (error) {
+    console.error('Failed to load published articles:', error)
+    articles.value = []
+    pagination.total = 0
   } finally {
     articleLoading.value = false
   }
@@ -368,6 +354,9 @@ const fetchSideArticles = async () => {
     }))
     const data = res?.data || res || {}
     sideArticles.value = Array.isArray(data.records) ? data.records : []
+  } catch (error) {
+    console.error('Failed to load side articles:', error)
+    sideArticles.value = []
   } finally {
     sideLoading.value = false
   }
@@ -380,15 +369,7 @@ const changeTab = (tab) => {
 
 const openArticle = async (id) => {
   if (typeof id === 'string') return
-  articleDialogVisible.value = true
-  detailLoading.value = true
-  activeArticle.value = null
-  try {
-    const res = await getArticleDetail(id)
-    activeArticle.value = res?.data || res
-  } finally {
-    detailLoading.value = false
-  }
+  router.push(`/article/${id}`)
 }
 
 const animateMotto = async (text) => {
@@ -486,11 +467,14 @@ onMounted(async () => {
   }, 1000)
   startMottoLoop()
 
-  await fetchCategories()
-  await Promise.all([fetchArticles(), fetchSideArticles()])
-  window.setTimeout(() => {
-    loadingScreen.value = false
-  }, 1000)
+  try {
+    await fetchCategories()
+    await Promise.allSettled([fetchArticles(), fetchSideArticles()])
+  } finally {
+    window.setTimeout(() => {
+      loadingScreen.value = false
+    }, 1000)
+  }
 })
 
 onBeforeUnmount(() => {
@@ -837,8 +821,7 @@ onBeforeUnmount(() => {
 
 .feature-bottom span,
 .post-body span,
-.small-post-list span,
-.dialog-head span {
+.small-post-list span {
   color: var(--cyan);
   font-size: 14px;
   font-weight: 900;
@@ -1084,29 +1067,6 @@ onBeforeUnmount(() => {
   text-shadow: 0 0 5px currentColor;
   animation: danmakuMove linear forwards;
   transition: opacity 0.6s ease;
-}
-
-.article-detail img {
-  width: 100%;
-  max-height: 380px;
-  border-radius: 8px;
-  object-fit: cover;
-}
-
-.article-detail .summary {
-  margin: 16px 0;
-  color: #536172;
-  line-height: 1.8;
-}
-
-.article-detail .content {
-  color: #1f2937;
-  line-height: 1.9;
-}
-
-.dialog-head h2 {
-  margin-top: 6px;
-  color: #1f2937;
 }
 
 .confirm-overlay {
