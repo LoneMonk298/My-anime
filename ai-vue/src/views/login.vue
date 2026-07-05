@@ -1,38 +1,121 @@
 <template>
   <div class="login-wrapper">
-    <button class="back-home" type="button" @click="router.push('/')">返回前台</button>
-
-    <section class="login-card">
-      <div class="visual-panel">
-        <span class="brand-mark">ZG</span>
-        <h1>二次元记录站</h1>
-        <p>登录后台后可以新增文章、上传封面、编辑记录并控制发布状态。</p>
-      </div>
-
-      <div class="form-panel">
-        <span class="eyebrow">Admin console</span>
-        <h2>后台登录</h2>
-        <el-form ref="loginFormRef" :model="loginData" :rules="loginRules" label-position="top" @submit.prevent>
-          <el-form-item label="账号" prop="username">
-            <el-input v-model="loginData.username" size="large" placeholder="请输入管理员账号" />
-          </el-form-item>
-          <el-form-item label="密码" prop="password">
-            <el-input v-model="loginData.password" size="large" type="password" show-password placeholder="请输入密码" />
-          </el-form-item>
-          <el-form-item label="验证码" prop="captcha">
-            <div class="captcha-row">
-              <el-input v-model="loginData.captcha" size="large" placeholder="请输入验证码" @keyup.enter="handleLogin" />
-              <button type="button" class="captcha-img" @click="refreshCaptcha">{{ captchaCode }}</button>
-            </div>
-          </el-form-item>
-          <button type="button" class="submit-btn" :disabled="loginLoading" @click="handleLogin">
-            {{ loginLoading ? '登录中...' : '登录后台' }}
+    <div class="login-page">
+      <div class="container" :class="{ active: isRegister }">
+        <section class="welcome-box">
+          <span class="brand-mark">ZG</span>
+          <h2>{{ isRegister ? 'Hello Friend!' : 'Welcome!' }}</h2>
+          <p>
+            {{
+              isRegister
+                ? '已有账号？切回登录后即可进入你的记录空间。'
+                : '登录后台管理文章、封面、分类与发布状态；普通账号后续会用于 AI 角色对话和资源下载。'
+            }}
+          </p>
+          <button type="button" @click="toggleMode">
+            {{ isRegister ? '去登录' : '注册账号' }}
           </button>
-        </el-form>
+        </section>
 
-        <button type="button" class="forgot-link" @click="forgotDialogVisible = true">忘记密码？邮箱重置</button>
+        <section class="form-box">
+          <button class="close-btn" type="button" aria-label="返回前台" @click="goHome">×</button>
+
+          <Transition name="fade" mode="out-in">
+            <div v-if="!isRegister" key="login" class="form-content">
+              <p class="eyebrow">Anime Record Console</p>
+              <h1>登录账号</h1>
+              <el-form
+                ref="loginFormRef"
+                :model="loginData"
+                :rules="loginRules"
+                label-position="top"
+                @submit.prevent="handleLogin"
+              >
+                <el-form-item prop="username">
+                  <el-input v-model="loginData.username" size="large" placeholder="Account" />
+                </el-form-item>
+                <el-form-item prop="password">
+                  <el-input
+                    v-model="loginData.password"
+                    size="large"
+                    type="password"
+                    show-password
+                    placeholder="Password"
+                  />
+                </el-form-item>
+                <div class="forgot-row">
+                  <button type="button" @click="forgotDialogVisible = true">忘记密码？邮箱重置</button>
+                </div>
+                <el-form-item prop="captcha">
+                  <div class="captcha-group">
+                    <el-input
+                      v-model="loginData.captcha"
+                      size="large"
+                      placeholder="Verification Code"
+                      @keyup.enter="handleLogin"
+                    />
+                    <button type="button" class="captcha-img" @click="refreshCaptcha">{{ captchaCode }}</button>
+                  </div>
+                </el-form-item>
+                <el-form-item>
+                  <button type="submit" class="submit-btn" :disabled="loginLoading">
+                    {{ loginLoading ? '登录中...' : 'Login' }}
+                  </button>
+                </el-form-item>
+              </el-form>
+            </div>
+
+            <div v-else key="register" class="form-content">
+              <p class="eyebrow">Create Account</p>
+              <h1>注册账号</h1>
+              <el-form
+                ref="registerFormRef"
+                :model="registerData"
+                :rules="registerRules"
+                label-position="top"
+                @submit.prevent="handleRegister"
+              >
+                <el-form-item prop="username">
+                  <el-input v-model="registerData.username" size="large" placeholder="用户名" />
+                </el-form-item>
+                <el-form-item prop="email">
+                  <el-input v-model="registerData.email" size="large" placeholder="邮箱" />
+                </el-form-item>
+                <el-form-item prop="password">
+                  <el-input
+                    v-model="registerData.password"
+                    size="large"
+                    type="password"
+                    show-password
+                    placeholder="密码"
+                  />
+                </el-form-item>
+                <el-form-item prop="confirmPassword">
+                  <el-input
+                    v-model="registerData.confirmPassword"
+                    size="large"
+                    type="password"
+                    show-password
+                    placeholder="确认密码"
+                  />
+                </el-form-item>
+                <el-form-item prop="captcha">
+                  <div class="captcha-group">
+                    <el-input v-model="registerData.captcha" size="large" placeholder="验证码" />
+                    <button type="button" class="captcha-img" @click="refreshCaptcha">{{ captchaCode }}</button>
+                  </div>
+                </el-form-item>
+                <el-form-item>
+                  <button type="submit" class="submit-btn" :disabled="registerLoading">
+                    {{ registerLoading ? '注册中...' : 'Register' }}
+                  </button>
+                </el-form-item>
+              </el-form>
+            </div>
+          </Transition>
+        </section>
       </div>
-    </section>
+    </div>
 
     <el-dialog v-model="forgotDialogVisible" title="邮箱重置密码" width="460px" destroy-on-close>
       <el-form :model="forgotForm" label-width="86px">
@@ -71,19 +154,23 @@
 import { onBeforeUnmount, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { login, resetPasswordByEmail, sendResetPasswordCode } from '@/api/admin'
+import { login, register, resetPasswordByEmail, sendResetPasswordCode } from '@/api/admin'
 import { canUseLoginRedirect, resolveHomePath } from '@/utils/authRole'
 import { normalizeUserInfo } from '@/utils/userAvatar'
 
 const router = useRouter()
 const route = useRoute()
+
+const isRegister = ref(false)
 const loginFormRef = ref()
+const registerFormRef = ref()
 const loginLoading = ref(false)
-const captchaCode = ref('')
+const registerLoading = ref(false)
 const forgotDialogVisible = ref(false)
 const sendingCode = ref(false)
 const resettingPassword = ref(false)
 const resetCodeCountdown = ref(0)
+const captchaCode = ref('')
 let resetCodeTimer = null
 
 const RESET_CODE_COOLDOWN_KEY = 'passwordResetCodeCooldownUntil'
@@ -94,6 +181,14 @@ const loginData = reactive({
   captcha: '',
 })
 
+const registerData = reactive({
+  username: '',
+  email: '',
+  password: '',
+  confirmPassword: '',
+  captcha: '',
+})
+
 const forgotForm = reactive({
   email: '',
   code: '',
@@ -101,15 +196,48 @@ const forgotForm = reactive({
   confirmPassword: '',
 })
 
+const validateConfirmPassword = (rule, value, callback) => {
+  if (value !== registerData.password) {
+    callback(new Error('两次输入的密码不一致'))
+    return
+  }
+  callback()
+}
+
 const loginRules = {
-  username: [{ required: true, message: '请输入账号', trigger: 'blur' }],
+  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+  captcha: [{ required: true, message: '请输入验证码', trigger: 'blur' }],
+}
+
+const registerRules = {
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 3, max: 20, message: '用户名长度在 3 到 20 个字符', trigger: 'blur' },
+  ],
+  email: [
+    { required: true, message: '请输入邮箱', trigger: 'blur' },
+    { type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' },
+  ],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 6, message: '密码至少 6 个字符', trigger: 'blur' },
+  ],
+  confirmPassword: [
+    { required: true, message: '请确认密码', trigger: 'blur' },
+    { validator: validateConfirmPassword, trigger: 'blur' },
+  ],
   captcha: [{ required: true, message: '请输入验证码', trigger: 'blur' }],
 }
 
 const refreshCaptcha = () => {
   const chars = 'ABCDEFGHJKLMNPQRSTWXY23456789'
   captchaCode.value = Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
+}
+
+const toggleMode = () => {
+  isRegister.value = !isRegister.value
+  refreshCaptcha()
 }
 
 const startResetCodeCountdown = () => {
@@ -136,6 +264,15 @@ const restoreResetCodeCountdown = () => {
     resetCodeCountdown.value = remain
     startResetCodeCountdown()
   }
+}
+
+const checkCaptcha = (value) => {
+  if (value.toUpperCase() === captchaCode.value.toUpperCase()) {
+    return true
+  }
+  ElMessage.warning('验证码错误')
+  refreshCaptcha()
+  return false
 }
 
 const handleSendResetCode = async () => {
@@ -188,13 +325,7 @@ const handleResetPassword = async () => {
 
 const handleLogin = async () => {
   const valid = await loginFormRef.value?.validate().catch(() => false)
-  if (!valid) return
-
-  if (loginData.captcha.toUpperCase() !== captchaCode.value.toUpperCase()) {
-    ElMessage.warning('验证码错误')
-    refreshCaptcha()
-    return
-  }
+  if (!valid || !checkCaptcha(loginData.captcha)) return
 
   loginLoading.value = true
   try {
@@ -222,6 +353,35 @@ const handleLogin = async () => {
   }
 }
 
+const handleRegister = async () => {
+  const valid = await registerFormRef.value?.validate().catch(() => false)
+  if (!valid || !checkCaptcha(registerData.captcha)) return
+
+  registerLoading.value = true
+  try {
+    await register({
+      username: registerData.username,
+      email: registerData.email,
+      password: registerData.password,
+    })
+    ElMessage.success('注册成功，请登录')
+    isRegister.value = false
+    loginData.username = registerData.username
+    registerData.username = ''
+    registerData.email = ''
+    registerData.password = ''
+    registerData.confirmPassword = ''
+    registerData.captcha = ''
+    refreshCaptcha()
+  } finally {
+    registerLoading.value = false
+  }
+}
+
+const goHome = () => {
+  router.push('/')
+}
+
 refreshCaptcha()
 restoreResetCodeCountdown()
 
@@ -236,157 +396,332 @@ onBeforeUnmount(() => {
 .login-wrapper {
   position: fixed;
   inset: 0;
-  display: grid;
-  place-items: center;
-  padding: 22px;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow: auto;
   background:
-    radial-gradient(circle at 18% 12%, rgba(100, 255, 218, 0.16), transparent 32%),
-    radial-gradient(circle at 82% 18%, rgba(59, 130, 246, 0.16), transparent 30%),
-    linear-gradient(135deg, #0d1117 0%, #112240 100%);
+    linear-gradient(200deg, rgba(243, 231, 233, 0.25), rgba(227, 238, 255, 0.18)),
+    radial-gradient(circle at 22% 18%, rgba(100, 255, 218, 0.2), transparent 28%),
+    radial-gradient(circle at 78% 80%, rgba(248, 206, 236, 0.2), transparent 30%),
+    url('/anime-assets/frontnav.png') center / cover no-repeat;
 }
 
-.back-home {
-  position: fixed;
-  top: 20px;
-  left: 22px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 8px;
-  background: rgba(10, 25, 47, 0.62);
-  color: #e6f1ff;
-  cursor: pointer;
-  padding: 10px 14px;
-}
-
-.login-card {
-  display: grid;
-  grid-template-columns: minmax(300px, 0.9fr) minmax(340px, 1fr);
-  width: min(920px, 100%);
+.login-page {
+  position: relative;
+  width: min(900px, 100%);
+  height: min(580px, calc(100vh - 40px));
   min-height: 560px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 18px 70px rgba(6, 16, 31, 0.34);
+  backdrop-filter: blur(15px);
 }
 
-.visual-panel {
-  display: grid;
-  align-content: center;
-  padding: 48px;
-  background:
-    linear-gradient(180deg, rgba(10, 25, 47, 0.42), rgba(10, 25, 47, 0.92)),
-    url('/anime-assets/frontnav.png') center / cover;
+.container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+.welcome-box,
+.form-box {
+  width: 50%;
+  height: 100%;
+  transition: transform 0.6s cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+
+.welcome-box {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  overflow: hidden;
   color: #fff;
-
-  .brand-mark {
-    display: grid;
-    width: 62px;
-    height: 62px;
-    place-items: center;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #64ffda, #3b82f6);
-    color: #07111f;
-    font-size: 22px;
-    font-weight: 950;
-  }
-
-  h1 {
-    margin: 24px 0 16px;
-    font-size: 42px;
-    line-height: 1.12;
-  }
-
-  p {
-    color: #d6e6f8;
-    line-height: 1.8;
-  }
+  text-align: center;
+  background:
+    linear-gradient(180deg, rgba(82, 69, 156, 0.45), rgba(20, 29, 62, 0.86)),
+    url('/anime-assets/cover-chunibyo.jpg') center / cover no-repeat;
 }
 
-.form-panel {
+.welcome-box::before {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background: rgba(100, 80, 174, 0.46);
+}
+
+.brand-mark,
+.welcome-box h2,
+.welcome-box p,
+.welcome-box button {
+  position: relative;
+  z-index: 1;
+}
+
+.brand-mark {
   display: grid;
-  align-content: center;
-  padding: 48px;
-
-  .eyebrow {
-    color: #169b86;
-    font-size: 13px;
-    font-weight: 850;
-    text-transform: uppercase;
-  }
-
-  h2 {
-    margin: 8px 0 28px;
-    color: #111827;
-    font-size: 34px;
-  }
+  width: 58px;
+  height: 58px;
+  margin-bottom: 18px;
+  place-items: center;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.24);
+  color: #fff;
+  font-size: 22px;
+  font-weight: 950;
+  letter-spacing: 1px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.34);
 }
 
-.captcha-row,
+.welcome-box h2 {
+  margin: 0 0 1.4rem;
+  font-size: 2.45rem;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px rgba(255, 180, 255, 0.62), 0 0 20px rgba(255, 120, 255, 0.38);
+  animation: textBounce 2s ease-in-out infinite;
+}
+
+.welcome-box p {
+  max-width: 310px;
+  margin: 0 0 2rem;
+  font-size: 1rem;
+  line-height: 1.75;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+  animation: textBounce 2s ease-in-out infinite 0.3s;
+}
+
+.welcome-box button {
+  min-width: 128px;
+  padding: 12px 34px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 800;
+  transition: 0.3s;
+  animation: textBounce 2s ease-in-out infinite 0.6s;
+}
+
+.welcome-box button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+.form-box {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: #f0f4ff;
+}
+
+.form-content {
+  width: 100%;
+  max-width: 340px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: #8f6bd8;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.form-box h1 {
+  margin: 0 0 2rem;
+  color: #332a2a;
+  font-size: 2rem;
+  letter-spacing: 2px;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.4s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+:deep(.el-form-item) {
+  margin-bottom: 1.15rem;
+}
+
+:deep(.el-input__wrapper) {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 4px 15px;
+}
+
+:deep(.el-input__inner) {
+  height: 44px;
+  font-size: 0.95rem;
+}
+
+.captcha-group,
 .reset-code-row {
   display: flex;
   width: 100%;
+  align-items: center;
   gap: 10px;
 }
 
-.captcha-row :deep(.el-input),
+.captcha-group :deep(.el-input),
 .reset-code-row :deep(.el-input) {
   flex: 1;
 }
 
 .captcha-img {
-  min-width: 86px;
+  min-width: 78px;
+  padding: 10px 12px;
   border: 0;
-  border-radius: 8px;
-  background: #e6fffa;
-  color: #16806f;
+  border-radius: 10px;
+  background: #f5e6e8;
+  color: #9b59b6;
   cursor: pointer;
-  font-size: 18px;
+  font-size: 1.1rem;
   font-weight: 850;
   letter-spacing: 2px;
+  text-align: center;
+  transition: 0.3s;
+  user-select: none;
+}
+
+.captcha-img:hover {
+  background: #f0d4d8;
+  transform: scale(1.05);
+}
+
+.forgot-row {
+  display: flex;
+  justify-content: flex-end;
+  margin: -0.4rem 0 0.75rem;
+}
+
+.forgot-row button {
+  border: 0;
+  background: transparent;
+  color: #8f6bd8;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.forgot-row button:hover {
+  color: #6f49c7;
+  text-decoration: underline;
 }
 
 .submit-btn {
   width: 100%;
-  min-height: 46px;
-  margin-top: 8px;
+  min-height: 50px;
   border: 0;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #64ffda, #3b82f6);
-  color: #07111f;
+  border-radius: 999px;
+  background: linear-gradient(45deg, #a88beb, #f8ceec);
+  box-shadow: 0 4px 12px rgba(168, 139, 235, 0.3);
+  color: #fff;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 900;
-  transition: transform 0.2s ease, filter 0.2s ease;
+  letter-spacing: 1px;
+  transition: 0.3s;
 }
 
-.submit-btn:hover {
-  filter: saturate(1.06);
-  transform: translateY(-2px);
+.submit-btn:hover:not(:disabled) {
+  background: linear-gradient(45deg, #a888f1, #f5b8e8);
+  box-shadow: 0 6px 20px rgba(168, 139, 235, 0.4);
+  transform: translateY(-4px);
 }
 
 .submit-btn:disabled {
   cursor: not-allowed;
-  opacity: 0.65;
+  opacity: 0.62;
 }
 
-.forgot-link {
-  width: fit-content;
-  margin-top: 18px;
+.close-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 2;
+  display: flex;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
   border: 0;
-  background: transparent;
-  color: #2563eb;
+  border-radius: 50%;
+  background: #c9cfdd;
+  color: #fff;
   cursor: pointer;
-  font: inherit;
-  font-weight: 760;
+  font-size: 1.35rem;
+  line-height: 1;
+  transition: 0.3s;
+}
+
+.close-btn:hover {
+  background: #99a1b3;
+  transform: rotate(90deg);
+}
+
+.container.active .welcome-box {
+  transform: translateX(100%);
+}
+
+.container.active .form-box {
+  transform: translateX(-100%);
+}
+
+@keyframes textBounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-5px);
+  }
 }
 
 @media (max-width: 760px) {
-  .login-card {
-    grid-template-columns: 1fr;
+  .login-page {
+    height: auto;
+    min-height: 0;
   }
 
-  .visual-panel {
-    min-height: 220px;
+  .container,
+  .container.active {
+    display: block;
+  }
+
+  .welcome-box,
+  .form-box,
+  .container.active .welcome-box,
+  .container.active .form-box {
+    width: 100%;
+    transform: none;
+  }
+
+  .welcome-box {
+    min-height: 230px;
+  }
+
+  .form-box {
+    min-height: 430px;
   }
 }
 </style>

@@ -373,7 +373,7 @@ const openArticle = async (id) => {
 }
 
 const goAdmin = () => {
-  router.push({ path: '/auth/login', query: { redirect: '/user/articles' } })
+  router.push({ path: '/auth/login', query: { redirect: '/user/articles', forceLogin: '1' } })
 }
 
 const animateMotto = async (text) => {

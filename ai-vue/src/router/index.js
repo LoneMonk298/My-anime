@@ -108,6 +108,12 @@ router.beforeEach((to, from, next) => {
     return
   }
 
+  if (to.path === '/auth/login' && to.query.forceLogin === '1') {
+    clearAuthState()
+    next()
+    return
+  }
+
   const userInfo = getStoredUserInfo()
   if (!hasKnownRole(userInfo)) {
     clearAuthState()
