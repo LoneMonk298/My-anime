@@ -414,21 +414,24 @@ onBeforeUnmount(() => {
   width: min(900px, 100%);
   height: min(580px, calc(100vh - 40px));
   min-height: 560px;
+  box-sizing: border-box;
+  padding: 4px;
   overflow: hidden;
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 18px 70px rgba(6, 16, 31, 0.34);
+  background: rgba(6, 16, 31, 0.52);
+  box-shadow:
+    0 18px 70px rgba(6, 16, 31, 0.34),
+    0 0 28px rgba(100, 255, 218, 0.18),
+    0 0 42px rgba(59, 130, 246, 0.14);
   backdrop-filter: blur(15px);
   isolation: isolate;
 }
 
 .login-page::before {
   position: absolute;
-  top: -35%;
-  left: -35%;
+  inset: -55%;
   z-index: 0;
-  width: 170%;
-  height: 170%;
+  display: block;
   background-image: conic-gradient(
     transparent,
     rgba(100, 255, 218, 0.95),
@@ -440,15 +443,6 @@ onBeforeUnmount(() => {
   animation: rotate 5s linear infinite;
 }
 
-.login-page::after {
-  position: absolute;
-  inset: 4px;
-  z-index: 0;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.95);
-  content: '';
-}
-
 .container {
   position: relative;
   z-index: 1;
@@ -457,6 +451,7 @@ onBeforeUnmount(() => {
   height: 100%;
   overflow: hidden;
   border-radius: 20px;
+  background: rgba(255, 255, 255, 0.95);
 }
 
 .welcome-box,
