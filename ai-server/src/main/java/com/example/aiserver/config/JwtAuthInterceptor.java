@@ -36,7 +36,6 @@ public class JwtAuthInterceptor implements HandlerInterceptor {
             "/user/register",
             "/user/password/reset-code",
             "/user/password/reset",
-            "/article/category/tree",
             "/uploads/**"
     );
 
@@ -98,19 +97,31 @@ public class JwtAuthInterceptor implements HandlerInterceptor {
     }
 
     private boolean isPublicRequest(HttpServletRequest request, String path) {
-        if ("GET".equalsIgnoreCase(request.getMethod()) && isPublicArticleRead(path)) {
+        if ("GET".equalsIgnoreCase(request.getMethod()) && isPublicArticleRead(request, path)) {
             return true;
         }
         return publicPaths.stream().anyMatch(pattern -> pathMatcher.match(pattern, path));
     }
 
-    private boolean isPublicArticleRead(String path) {
-        return "/article/page".equals(path)
+    private boolean isPublicArticleRead(HttpServletRequest request, String path) {
+        if ("/article/category/tree".equals(path)) {
+            return !"true".equalsIgnoreCase(request.getParameter("includeDisabled"));
+        }
+        return ("/article/page".equals(path) && "1".equals(request.getParameter("status")))
                 || pathMatcher.match("/article/{id}/view", path);
     }
 
     private boolean requiresAdmin(HttpServletRequest request, String path) {
         if (adminPaths.stream().anyMatch(pattern -> pathMatcher.match(pattern, path))) {
+            return true;
+        }
+        if ("/article/category/tree".equals(path)) {
+            return "true".equalsIgnoreCase(request.getParameter("includeDisabled"));
+        }
+        if ("/article/page".equals(path)) {
+            return !"1".equals(request.getParameter("status"));
+        }
+        if (pathMatcher.match("/article/{id}", path)) {
             return true;
         }
         if (pathMatcher.match("/article/**", path)) {

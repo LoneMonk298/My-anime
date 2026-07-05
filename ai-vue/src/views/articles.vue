@@ -1,6 +1,10 @@
 <template>
   <div class="article-admin-page">
-    <PageHead page-title="记录站内容管理">
+    <PageHead
+      eyebrow="Content"
+      page-title="记录站内容管理"
+      description="维护文章、分类、封面、发布状态和前台展示内容。"
+    >
       <template #buttons>
         <el-button v-if="activeTab === 'articles'" type="primary" @click="handleEdit({})">新增文章</el-button>
         <el-button v-else type="primary" @click="handleCategoryEdit({})">新增分类</el-button>
@@ -11,7 +15,7 @@
       <el-tab-pane label="文章管理" name="articles">
         <Tabelserch :form-item="formItem" @search="handleSearch" />
 
-        <el-table v-loading="loading" :data="tableData" class="article-table">
+        <el-table v-loading="loading" :data="tableData" class="article-table" empty-text="暂无文章">
           <el-table-column label="文章标题" fixed="left" min-width="280">
             <template #default="{ row }">
               <div class="title-cell">
@@ -72,7 +76,7 @@
       </el-tab-pane>
 
       <el-tab-pane label="分类管理" name="categories">
-        <el-table v-loading="categoryLoading" :data="categoryRows" class="article-table">
+        <el-table v-loading="categoryLoading" :data="categoryRows" class="article-table" empty-text="暂无分类">
           <el-table-column prop="name" label="分类名称" min-width="180" />
           <el-table-column prop="code" label="标识" min-width="160" />
           <el-table-column prop="description" label="描述" min-width="260" show-overflow-tooltip />
@@ -110,7 +114,12 @@
           <el-input v-model="categoryForm.code" placeholder="例如：bangumi" clearable />
         </el-form-item>
         <el-form-item label="描述">
-          <el-input v-model="categoryForm.description" type="textarea" :rows="3" placeholder="用于后台识别分类用途" />
+          <el-input
+            v-model="categoryForm.description"
+            type="textarea"
+            :rows="3"
+            placeholder="用于后台识别分类用途"
+          />
         </el-form-item>
         <el-form-item label="排序">
           <el-input-number v-model="categoryForm.sortOrder" :min="0" :max="999" />
@@ -129,7 +138,7 @@
 
 <script setup>
 import { dayjs, ElMessage, ElMessageBox } from 'element-plus'
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { Timer } from '@element-plus/icons-vue'
 import {
   addCategory,
@@ -171,7 +180,7 @@ const statusTypeMap = {
   2: 'warning',
 }
 
-const formItem = [
+const formItem = computed(() => [
   {
     comp: 'input',
     prop: 'title',
@@ -183,7 +192,7 @@ const formItem = [
     prop: 'categoryId',
     label: '文章分类',
     placeholder: '请选择文章分类',
-    options: [],
+    options: categories.value,
   },
   {
     comp: 'select',
@@ -196,7 +205,7 @@ const formItem = [
       { label: '已下线', value: 2 },
     ],
   },
-]
+])
 
 const pagination = reactive({
   currentPage: 1,
@@ -276,7 +285,6 @@ const loadCategories = async () => {
           value: item.id,
         }
       })
-    formItem[1].options = categories.value
   } finally {
     categoryLoading.value = false
   }

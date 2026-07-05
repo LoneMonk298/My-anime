@@ -121,9 +121,7 @@
       </el-button>
       <el-button @click="handleClose">取消</el-button>
       <el-button :loading="loading" @click="handleSubmit(0)">保存草稿</el-button>
-      <el-button type="primary" :loading="loading" @click="handleSubmit(1)">
-        保存并发布
-      </el-button>
+      <el-button type="primary" :loading="loading" @click="handleSubmit(1)">保存并发布</el-button>
     </template>
   </el-dialog>
 </template>
