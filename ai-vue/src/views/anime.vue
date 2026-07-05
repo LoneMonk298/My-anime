@@ -166,8 +166,19 @@
     <div v-if="confirmStep" class="confirm-overlay" @click="closeConfirm">
       <div class="confirm-box" :class="`step-${confirmStep}`" @click.stop>
         <p>{{ confirmText }}</p>
-        <button type="button" @click="nextConfirm">{{ confirmOkText }}</button>
-        <button type="button" @click="cancelConfirm">{{ confirmCancelText }}</button>
+        <div class="confirm-actions" :class="{ dodge: confirmStep === 3 }">
+          <button
+            class="confirm-ok"
+            type="button"
+            :style="confirmOkStyle"
+            @mouseenter="moveConfirmOk"
+            @focus="moveConfirmOk"
+            @click="nextConfirm"
+          >
+            {{ confirmOkText }}
+          </button>
+          <button class="confirm-cancel" type="button" @click="cancelConfirm">{{ confirmCancelText }}</button>
+        </div>
       </div>
     </div>
   </div>
@@ -191,6 +202,7 @@ const categories = ref([])
 const activeTab = ref('recent')
 const now = ref(new Date())
 const confirmStep = ref(0)
+const confirmOkOffset = reactive({ x: 0, y: 0 })
 const mottoChars = ref([])
 const danmakuItems = ref([])
 
@@ -267,6 +279,13 @@ const confirmCancelText = computed(() => {
   if (confirmStep.value === 2) return '不是'
   if (confirmStep.value === 3) return '并非'
   return '取消'
+})
+
+const confirmOkStyle = computed(() => {
+  if (confirmStep.value !== 3) return {}
+  return {
+    transform: `translate(${confirmOkOffset.x}px, ${confirmOkOffset.y}px)`,
+  }
 })
 
 const cleanParams = (params) => {
@@ -442,15 +461,35 @@ const stopDanmaku = () => {
 }
 
 const openLinkGame = () => {
+  confirmOkOffset.x = 0
+  confirmOkOffset.y = 0
   confirmStep.value = 1
 }
 
 const nextConfirm = () => {
   if (confirmStep.value < 3) {
     confirmStep.value += 1
+    confirmOkOffset.x = 0
+    confirmOkOffset.y = 0
     return
   }
   closeConfirm()
+}
+
+const moveConfirmOk = () => {
+  if (confirmStep.value !== 3) return
+
+  const candidates = [
+    { x: -86, y: -34 },
+    { x: 84, y: -30 },
+    { x: -72, y: 36 },
+    { x: 74, y: 34 },
+    { x: 8, y: -48 },
+  ].filter((item) => Math.abs(item.x - confirmOkOffset.x) + Math.abs(item.y - confirmOkOffset.y) > 38)
+
+  const next = candidates[Math.floor(Math.random() * candidates.length)] || { x: 74, y: -34 }
+  confirmOkOffset.x = next.x
+  confirmOkOffset.y = next.y
 }
 
 const cancelConfirm = () => {
@@ -463,6 +502,8 @@ const cancelConfirm = () => {
 
 const closeConfirm = () => {
   confirmStep.value = 0
+  confirmOkOffset.x = 0
+  confirmOkOffset.y = 0
 }
 
 onMounted(async () => {
@@ -1117,6 +1158,7 @@ onBeforeUnmount(() => {
 }
 
 .confirm-box p,
+.confirm-actions,
 .confirm-box button {
   position: relative;
   z-index: 3;
@@ -1126,8 +1168,20 @@ onBeforeUnmount(() => {
   margin-bottom: 22px;
 }
 
+.confirm-actions {
+  display: flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.confirm-actions.dodge {
+  min-width: 210px;
+  min-height: 78px;
+}
+
 .confirm-box button {
-  margin: 0 8px;
   padding: 11px 22px;
   border: 0;
   border-radius: 8px;
@@ -1135,7 +1189,11 @@ onBeforeUnmount(() => {
   color: #fff;
   cursor: pointer;
   font-size: 15px;
-  transition: all 0.25s;
+  will-change: transform;
+  transition:
+    transform 0.26s cubic-bezier(0.2, 0.85, 0.25, 1),
+    background 0.25s ease,
+    font-weight 0.25s ease;
 }
 
 .confirm-box button:hover {
@@ -1147,8 +1205,12 @@ onBeforeUnmount(() => {
   transform: translate(80px, -50px);
 }
 
-.confirm-box.step-3 button:first-of-type:hover {
-  transform: translate(72px, -46px);
+.confirm-box.step-3 {
+  padding-bottom: 22px;
+}
+
+.confirm-box.step-3 .confirm-ok {
+  z-index: 4;
 }
 
 @keyframes starMove {
