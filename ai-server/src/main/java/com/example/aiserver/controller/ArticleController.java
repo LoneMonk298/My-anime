@@ -1,7 +1,9 @@
 package com.example.aiserver.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.example.aiserver.common.BusinessException;
 import com.example.aiserver.common.ApiResult;
 import com.example.aiserver.dto.ArticleStatusRequest;
 import com.example.aiserver.entity.Article;
@@ -88,6 +90,27 @@ public class ArticleController {
         return ApiResult.success(articleMapper.selectById(id));
     }
 
+    @GetMapping("/article/{id}/view")
+    public ApiResult<Map<String, Object>> publicArticleView(@PathVariable Long id) {
+        Article article = articleMapper.selectOne(new LambdaQueryWrapper<Article>()
+                .eq(Article::getId, id)
+                .eq(Article::getStatus, 1));
+        if (article == null) {
+            throw new BusinessException("文章不存在或尚未发布");
+        }
+
+        articleMapper.update(null, new LambdaUpdateWrapper<Article>()
+                .eq(Article::getId, id)
+                .setSql("read_count = read_count + 1"));
+        Article refreshed = articleMapper.selectById(id);
+
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("article", refreshed);
+        data.put("previous", findNeighbor(refreshed, true));
+        data.put("next", findNeighbor(refreshed, false));
+        return ApiResult.success(data);
+    }
+
     @PutMapping("/article/{id}")
     public ApiResult<Article> updateArticle(@PathVariable Long id, @RequestBody Article article) {
         article.setId(id);
@@ -128,5 +151,29 @@ public class ArticleController {
         data.put("updatedAt", category.getUpdatedAt());
         data.put("deleted", category.getDeleted());
         return data;
+    }
+
+    private Article findNeighbor(Article article, boolean previous) {
+        LocalDateTime publishedAt = article.getPublishedAt();
+        if (publishedAt == null) {
+            return null;
+        }
+
+        LambdaQueryWrapper<Article> wrapper = new LambdaQueryWrapper<Article>()
+                .select(Article::getId, Article::getTitle, Article::getCategoryId,
+                        Article::getCoverImg, Article::getPublishedAt, Article::getAuthorName)
+                .eq(Article::getStatus, 1)
+                .ne(Article::getId, article.getId());
+
+        if (previous) {
+            wrapper.lt(Article::getPublishedAt, publishedAt)
+                    .orderByDesc(Article::getPublishedAt);
+        } else {
+            wrapper.gt(Article::getPublishedAt, publishedAt)
+                    .orderByAsc(Article::getPublishedAt);
+        }
+
+        wrapper.last("LIMIT 1");
+        return articleMapper.selectOne(wrapper);
     }
 }

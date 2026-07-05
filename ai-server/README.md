@@ -55,6 +55,7 @@ Database exceptions are handled separately and return a database-specific messag
 - `GET /api/article/category/tree`
 - `GET /api/article/page`
 - `GET /api/article/{id}`
+- `GET /api/article/{id}/view`
 - `POST /api/article`
 - `PUT /api/article/{id}`
 - `PUT /api/article/{id}/status`

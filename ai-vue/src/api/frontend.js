@@ -11,3 +11,7 @@ export function getArticleCategoryTree() {
 export function getArticleDetail(articleId) {
   return service.get(`/article/${articleId}`)
 }
+
+export function getArticleView(articleId) {
+  return service.get(`/article/${articleId}/view`)
+}

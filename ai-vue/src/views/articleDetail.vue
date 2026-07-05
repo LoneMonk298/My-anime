@@ -66,7 +66,7 @@
           <h1>{{ article.title }}</h1>
           <div class="meta-line">
             <span><i class="fa-regular fa-clock" aria-hidden="true"></i>{{ formatDate(article.publishedAt || article.updatedAt) }}</span>
-            <span><i class="fa-solid fa-user-circle" aria-hidden="true"></i>{{ article.author || 'ZG' }}</span>
+            <span><i class="fa-solid fa-user-circle" aria-hidden="true"></i>{{ article.authorName || article.author || 'ZG' }}</span>
             <span v-if="article.readCount !== undefined"><i class="fa-regular fa-eye" aria-hidden="true"></i>{{ article.readCount }} reads</span>
           </div>
           <p v-if="article.summary" class="summary">{{ article.summary }}</p>
@@ -74,6 +74,17 @@
 
         <section class="article-body" v-html="article.content || '<p>这篇记录暂时还没有正文。</p>'"></section>
       </article>
+
+      <section v-if="article && (previousArticle || nextArticle)" class="neighbor-section">
+        <button class="neighbor-card" type="button" :disabled="!previousArticle" @click="goArticle(previousArticle?.id)">
+          <span>上一篇</span>
+          <strong>{{ previousArticle?.title || '已经是第一篇记录' }}</strong>
+        </button>
+        <button class="neighbor-card next" type="button" :disabled="!nextArticle" @click="goArticle(nextArticle?.id)">
+          <span>下一篇</span>
+          <strong>{{ nextArticle?.title || '已经是最后一篇记录' }}</strong>
+        </button>
+      </section>
 
       <section v-if="relatedArticles.length" class="related-section">
         <div class="section-title">
@@ -86,7 +97,7 @@
             <div>
               <span>{{ getCategoryName(item.categoryId) }}</span>
               <h3>{{ item.title }}</h3>
-              <small>{{ formatDate(item.publishedAt || item.updatedAt) }} · {{ item.author || 'ZG' }}</small>
+              <small>{{ formatDate(item.publishedAt || item.updatedAt) }} · {{ item.authorName || item.author || 'ZG' }}</small>
             </div>
           </article>
         </div>
@@ -99,13 +110,15 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { dayjs } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
-import { getArticleCategoryTree, getArticleDetail, getArticleList } from '@/api/frontend'
+import { getArticleCategoryTree, getArticleList, getArticleView } from '@/api/frontend'
 import { getArticleCover, resolveFileUrl } from '@/utils/fileUrl'
 
 const route = useRoute()
 const router = useRouter()
 
 const article = ref(null)
+const previousArticle = ref(null)
+const nextArticle = ref(null)
 const relatedArticles = ref([])
 const categories = ref([])
 const loading = ref(false)
@@ -197,15 +210,20 @@ const fetchArticle = async () => {
   loading.value = true
   loadError.value = ''
   article.value = null
+  previousArticle.value = null
+  nextArticle.value = null
   try {
-    const res = await getArticleDetail(id)
+    const res = await getArticleView(id)
     const data = res?.data || res
-    if (!data) {
+    const currentArticle = data?.article || data
+    if (!currentArticle) {
       loadError.value = '这篇记录不存在，或已经被下线。'
       return
     }
-    article.value = data
-    document.title = `${data.title} - 二次元记录站`
+    article.value = currentArticle
+    previousArticle.value = data?.previous || null
+    nextArticle.value = data?.next || null
+    document.title = `${currentArticle.title} - 二次元记录站`
     await fetchRelated()
   } catch (error) {
     loadError.value = error?.message || '加载失败，请稍后再试。'
@@ -215,7 +233,7 @@ const fetchArticle = async () => {
 }
 
 const goArticle = (id) => {
-  if (typeof id === 'string' && id.startsWith('placeholder')) return
+  if (!id || (typeof id === 'string' && id.startsWith('placeholder'))) return
   router.push(`/article/${id}`)
 }
 
@@ -532,6 +550,7 @@ onBeforeUnmount(() => {
 }
 
 .category,
+.neighbor-card span,
 .related-card span,
 .section-title span {
   color: var(--cyan);
@@ -616,6 +635,51 @@ onBeforeUnmount(() => {
 
 .empty-state button {
   margin: 18px auto 0;
+}
+
+.neighbor-section {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 20px;
+}
+
+.neighbor-card {
+  display: grid;
+  gap: 8px;
+  min-height: 92px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  background: var(--panel);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition: border-color 0.22s ease, box-shadow 0.22s ease, transform 0.22s ease;
+}
+
+.neighbor-card.next {
+  text-align: right;
+}
+
+.neighbor-card strong {
+  overflow: hidden;
+  font-size: 20px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.neighbor-card:disabled {
+  cursor: default;
+  opacity: 0.48;
+}
+
+.neighbor-card:not(:disabled):hover {
+  border-color: rgba(13, 110, 253, 0.65);
+  box-shadow: 0 0 24px rgba(13, 110, 253, 0.18);
+  transform: translateY(-2px);
 }
 
 .related-section {
@@ -735,8 +799,13 @@ onBeforeUnmount(() => {
     padding-right: 18px;
   }
 
+  .neighbor-section,
   .related-grid {
     grid-template-columns: 1fr;
+  }
+
+  .neighbor-card.next {
+    text-align: left;
   }
 }
 </style>

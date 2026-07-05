@@ -106,7 +106,8 @@ public class JwtAuthInterceptor implements HandlerInterceptor {
 
     private boolean isPublicArticleRead(String path) {
         return "/article/page".equals(path)
-                || pathMatcher.match("/article/{id}", path);
+                || pathMatcher.match("/article/{id}", path)
+                || pathMatcher.match("/article/{id}/view", path);
     }
 
     private boolean requiresAdmin(HttpServletRequest request, String path) {
