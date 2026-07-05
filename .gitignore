@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Frontend build output
+ai-vue/dist/
+dist/
+
+# Backend build output
+ai-server/target/
+target/
+
+# Runtime uploads and logs
+ai-server/uploads/
+uploads/
+*.log
+vite-dev*.log
+
+# Local environment
+.env
+.env.*
+!.env.example
+
+# IDE and OS files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Local Git history backups created during repository rebuilds
+.git.backup*/
+

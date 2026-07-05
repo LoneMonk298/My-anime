@@ -1,0 +1,25 @@
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: /api
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: ${MAX_FILE_SIZE:20MB}
+      max-request-size: ${MAX_REQUEST_SIZE:20MB}
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${DB_HOST:127.0.0.1}:${DB_PORT:3306}/${DB_NAME:anime_record_site}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
+    username: ${DB_USERNAME:ai_user}
+    password: ${DB_PASSWORD:change_me}
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:change-this-production-secret-at-least-32-characters}
+    expire-hours: ${JWT_EXPIRE_HOURS:24}
+  file:
+    upload-dir: ${UPLOAD_DIR:/www/wwwroot/anime-record-site/uploads}
+    public-prefix: /uploads
+  mail:
+    from: ${MAIL_FROM:}

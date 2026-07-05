@@ -1,0 +1,69 @@
+import service from '@/utils/request'
+
+export function login(data) {
+  return service.post('/user/login', data)
+}
+
+export function register(data) {
+  return service.post('/user/register', data)
+}
+
+export function logout() {
+  return service.post('/user/logout')
+}
+
+export function sendResetPasswordCode(email) {
+  return service.post('/user/password/reset-code', { email })
+}
+
+export function resetPasswordByEmail(data) {
+  return service.put('/user/password/reset', data)
+}
+
+export function createAdmin(data) {
+  return service.post('/user/admin', data)
+}
+
+export function updateAdminPassword(data) {
+  return service.put('/user/password', data)
+}
+
+export function categoryTree() {
+  return service.get('/article/category/tree')
+}
+
+export function articleList(params) {
+  return service.get('/article/page', { params })
+}
+
+export function uploadFile(file, businessInfo = {}) {
+  const formData = new FormData()
+  formData.append('file', file)
+  formData.append('businessType', businessInfo.businessType || 'ARTICLE')
+  formData.append('businessId', businessInfo.businessId || crypto.randomUUID())
+  formData.append('businessField', businessInfo.businessField || 'cover')
+
+  return service.post('/file/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+}
+
+export function addArticle(data) {
+  return service.post('/article', data)
+}
+
+export function getArticleDetail(id) {
+  return service.get(`/article/${id}`)
+}
+
+export function updateArticle(id, data) {
+  return service.put(`/article/${id}`, data)
+}
+
+export function deleteArticle(id) {
+  return service.delete(`/article/${id}`)
+}
+
+export function changeArticleStatus(id, data) {
+  return service.put(`/article/${id}/status`, data)
+}
