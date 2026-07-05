@@ -5,6 +5,12 @@ CREATE DATABASE IF NOT EXISTS anime_record_site
   DEFAULT CHARACTER SET utf8mb4
   DEFAULT COLLATE utf8mb4_unicode_ci;
 
+CREATE USER IF NOT EXISTS 'ai_user'@'localhost' IDENTIFIED BY 'change_me';
+CREATE USER IF NOT EXISTS 'ai_user'@'%' IDENTIFIED BY 'change_me';
+GRANT ALL PRIVILEGES ON anime_record_site.* TO 'ai_user'@'localhost';
+GRANT ALL PRIVILEGES ON anime_record_site.* TO 'ai_user'@'%';
+FLUSH PRIVILEGES;
+
 USE anime_record_site;
 
 CREATE TABLE IF NOT EXISTS sys_user (

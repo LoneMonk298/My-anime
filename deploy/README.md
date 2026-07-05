@@ -17,7 +17,7 @@ Create a MySQL database and user, then import:
 mysql -u root -p < database/init.sql
 ```
 
-Use strong production values for:
+The initialization script includes a development `ai_user/change_me` grant. For production, create a stronger database user/password and override the runtime environment:
 
 ```text
 DB_HOST=127.0.0.1
@@ -27,6 +27,7 @@ DB_USERNAME=anime_user
 DB_PASSWORD=change_this_password
 JWT_SECRET=change_this_to_a_long_random_secret
 UPLOAD_DIR=/www/wwwroot/anime-record-site/uploads
+LOG_FILE=/www/wwwroot/anime-record-site/logs/anime-record-server.log
 ```
 
 ## 2. Build Backend
@@ -60,3 +61,4 @@ Use [deploy/nginx.conf](nginx.conf) as the site location snippet. It serves Vue 
 - Create an article with a cover image
 - Publish and unpublish the article
 - Confirm `/api/article/page?status=1` returns only published articles
+- If an API returns an error, copy the `traceId` from the JSON response or `X-Request-Id` header and search the backend log.
