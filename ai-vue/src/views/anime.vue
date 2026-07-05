@@ -28,7 +28,7 @@
         <a href="https://www.bilibili.com/" target="_blank" rel="noreferrer">B站官网</a>
         <a href="https://xifan.moe" target="_blank" rel="noreferrer">稀饭动漫</a>
         <button type="button" @click="openLinkGame">游戏友链</button>
-        <button type="button" @click="router.push('/auth/login')">管理后台</button>
+        <button type="button" @click="goAdmin">管理后台</button>
       </nav>
 
       <section class="latest-news">
@@ -370,6 +370,10 @@ const changeTab = (tab) => {
 const openArticle = async (id) => {
   if (typeof id === 'string') return
   router.push(`/article/${id}`)
+}
+
+const goAdmin = () => {
+  router.push({ path: '/auth/login', query: { redirect: '/user/articles' } })
 }
 
 const animateMotto = async (text) => {

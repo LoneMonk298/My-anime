@@ -1,6 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import BackEndLayout from '@/components/backendlayout.vue'
 import AuthLayout from '@/components/Authlayout.vue'
+import {
+  canUseLoginRedirect,
+  hasKnownRole,
+  isAdminRole,
+  resolveHomePath,
+} from '@/utils/authRole'
 
 const clearAuthState = () => {
   localStorage.removeItem('token')
@@ -8,12 +14,11 @@ const clearAuthState = () => {
   localStorage.removeItem('privacyAccepted')
 }
 
-const getRoleType = () => {
+const getStoredUserInfo = () => {
   try {
-    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
-    return Number(userInfo.roleType ?? userInfo.userType)
+    return JSON.parse(localStorage.getItem('userInfo') || '{}')
   } catch {
-    return NaN
+    return {}
   }
 }
 
@@ -103,19 +108,26 @@ router.beforeEach((to, from, next) => {
     return
   }
 
-  const roleType = getRoleType()
-  if (Number.isNaN(roleType)) {
+  const userInfo = getStoredUserInfo()
+  if (!hasKnownRole(userInfo)) {
     clearAuthState()
-    next({ path: '/auth/login', replace: true })
+    if (to.path === '/auth/login') {
+      next()
+      return
+    }
+    next({ path: '/auth/login', query: { redirect: to.fullPath }, replace: true })
     return
   }
 
   if (to.path === '/auth/login') {
-    next({ path: roleType === 2 ? '/user/articles' : '/', replace: true })
+    const redirect = canUseLoginRedirect(to.query.redirect, userInfo)
+      ? to.query.redirect
+      : resolveHomePath(userInfo)
+    next({ path: redirect, replace: true })
     return
   }
 
-  if (to.meta.requiresAdmin && roleType !== 2) {
+  if (to.meta.requiresAdmin && !isAdminRole(userInfo)) {
     next({ path: '/', replace: true })
     return
   }

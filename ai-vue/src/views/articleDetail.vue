@@ -21,7 +21,7 @@
         </button>
         <a href="https://www.bilibili.com/" target="_blank" rel="noreferrer">B站官网</a>
         <a href="https://xifan.moe" target="_blank" rel="noreferrer">稀饭动漫</a>
-        <button type="button" @click="router.push('/auth/login')">管理后台</button>
+        <button type="button" @click="goAdmin">管理后台</button>
       </nav>
 
       <section class="latest-news">
@@ -235,6 +235,10 @@ const fetchArticle = async () => {
 const goArticle = (id) => {
   if (!id || (typeof id === 'string' && id.startsWith('placeholder'))) return
   router.push(`/article/${id}`)
+}
+
+const goAdmin = () => {
+  router.push({ path: '/auth/login', query: { redirect: '/user/articles' } })
 }
 
 onMounted(async () => {

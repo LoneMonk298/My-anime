@@ -69,12 +69,14 @@
 
 <script setup>
 import { onBeforeUnmount, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { login, resetPasswordByEmail, sendResetPasswordCode } from '@/api/admin'
+import { canUseLoginRedirect, resolveHomePath } from '@/utils/authRole'
 import { normalizeUserInfo } from '@/utils/userAvatar'
 
 const router = useRouter()
+const route = useRoute()
 const loginFormRef = ref()
 const loginLoading = ref(false)
 const captchaCode = ref('')
@@ -211,7 +213,10 @@ const handleLogin = async () => {
 
     localStorage.setItem('token', token)
     localStorage.setItem('userInfo', JSON.stringify(userInfo))
-    router.replace(userInfo.roleType === 2 || userInfo.userType === 2 ? '/user/articles' : '/')
+    const redirect = canUseLoginRedirect(route.query.redirect, userInfo)
+      ? route.query.redirect
+      : resolveHomePath(userInfo)
+    router.replace(redirect)
   } finally {
     loginLoading.value = false
   }
