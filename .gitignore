@@ -8,6 +8,8 @@ dist/
 # Backend build output
 ai-server/target/
 target/
+deploy/*.jar
+deploy/*.zip
 
 # Runtime uploads and logs
 ai-server/uploads/
@@ -28,4 +30,3 @@ Thumbs.db
 
 # Local Git history backups created during repository rebuilds
 .git.backup*/
-

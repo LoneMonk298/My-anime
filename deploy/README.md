@@ -14,10 +14,17 @@ MySQL database: anime_record_site
 Create a MySQL database and user, then import:
 
 ```bash
-mysql -u root -p < database/init.sql
+mysql -u root -p --default-character-set=utf8mb4 < deploy/mysql-init-anime-record.sql
 ```
 
-The initialization script includes a development `ai_user/change_me` grant. For production, create a stronger database user/password and override the runtime environment:
+The initialization script creates:
+
+- database: `anime_record_site`
+- app database user: `ai_user/change_me`
+- default administrator: `admin/aqt5201314`
+- default article categories: 番剧、动画、漫画、游戏、随笔
+
+For production, change the database password and override the runtime environment:
 
 ```text
 DB_HOST=127.0.0.1
@@ -39,6 +46,12 @@ mvn clean package -DskipTests
 
 Upload the generated jar from `ai-server/target/`.
 
+The packaged deployment jar is also copied to:
+
+```text
+deploy/anime-record-server.jar
+```
+
 ## 3. Build Frontend
 
 ```bash
@@ -49,6 +62,12 @@ npm run build
 
 Upload everything in `ai-vue/dist` to the Nginx web root.
 
+The packaged frontend zip is also available at:
+
+```text
+deploy/anime-record-web-dist.zip
+```
+
 ## 4. Nginx
 
 Use [deploy/nginx.conf](nginx.conf) as the site location snippet. It serves Vue history routes and proxies `/api` to the backend on port `8080`.
@@ -56,7 +75,7 @@ Use [deploy/nginx.conf](nginx.conf) as the site location snippet. It serves Vue 
 ## 5. Smoke Test
 
 - Visit `/anime`
-- Log in at `/login`
+- Log in at `/auth/login`
 - Create a category
 - Create an article with a cover image
 - Publish and unpublish the article

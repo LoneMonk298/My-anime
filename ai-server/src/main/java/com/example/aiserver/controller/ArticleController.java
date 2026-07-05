@@ -193,9 +193,6 @@ public class ArticleController {
         if (!StringUtils.hasText(category.getCode())) {
             category.setCode("category-" + System.currentTimeMillis());
         }
-        if (category.getParentId() == null) {
-            category.setParentId(0L);
-        }
         if (category.getStatus() == null) {
             category.setStatus(1);
         }
