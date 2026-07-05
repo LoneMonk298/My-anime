@@ -62,7 +62,7 @@ const routes = [
   },
   {
     path: '/user',
-    redirect: '/user/articles',
+    redirect: '/user/dashboard',
     component: BackEndLayout,
     meta: {
       requiresAuth: true,
@@ -70,12 +70,56 @@ const routes = [
     },
     children: [
       {
+        path: 'dashboard',
+        name: 'AdminDashboard',
+        component: () => import('@/views/admin/Dashboard.vue'),
+        meta: {
+          title: '仪表盘',
+          icon: 'DataBoard',
+          requiresAuth: true,
+          requiresAdmin: true,
+        },
+      },
+      {
         path: 'articles',
         name: 'ArticleAdmin',
         component: () => import('@/views/articles.vue'),
         meta: {
           title: '记录文章',
           icon: 'Notebook',
+          requiresAuth: true,
+          requiresAdmin: true,
+        },
+      },
+      {
+        path: 'resources',
+        name: 'ResourceAdmin',
+        component: () => import('@/views/admin/Resources.vue'),
+        meta: {
+          title: '资源管理',
+          icon: 'FolderOpened',
+          requiresAuth: true,
+          requiresAdmin: true,
+        },
+      },
+      {
+        path: 'users',
+        name: 'UserAdmin',
+        component: () => import('@/views/admin/Users.vue'),
+        meta: {
+          title: '用户管理',
+          icon: 'User',
+          requiresAuth: true,
+          requiresAdmin: true,
+        },
+      },
+      {
+        path: 'settings',
+        name: 'SystemSettings',
+        component: () => import('@/views/admin/Settings.vue'),
+        meta: {
+          title: '系统设置',
+          icon: 'Setting',
           requiresAuth: true,
           requiresAdmin: true,
         },

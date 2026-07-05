@@ -1,4 +1,4 @@
-export const ADMIN_HOME = '/user/articles'
+export const ADMIN_HOME = '/user/dashboard'
 export const USER_HOME = '/'
 
 const ADMIN_ROLES = new Set(['ADMIN', 'SUPER_ADMIN'])
