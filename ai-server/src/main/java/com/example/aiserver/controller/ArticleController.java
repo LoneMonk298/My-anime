@@ -35,12 +35,54 @@ public class ArticleController {
     private final ArticleMapper articleMapper;
 
     @GetMapping("/article/category/tree")
-    public ApiResult<List<Map<String, Object>>> categoryTree() {
+    public ApiResult<List<Map<String, Object>>> categoryTree(
+            @RequestParam(defaultValue = "false") boolean includeDisabled
+    ) {
         List<ArticleCategory> categories = categoryMapper.selectList(new LambdaQueryWrapper<ArticleCategory>()
-                .eq(ArticleCategory::getStatus, 1)
+                .eq(!includeDisabled, ArticleCategory::getStatus, 1)
                 .orderByAsc(ArticleCategory::getParentId)
                 .orderByAsc(ArticleCategory::getSortOrder));
         return ApiResult.success(categories.stream().map(this::toCategoryMap).collect(Collectors.toList()));
+    }
+
+    @PostMapping("/article/category")
+    public ApiResult<ArticleCategory> addCategory(@RequestBody ArticleCategory category) {
+        if (!StringUtils.hasText(category.getName())) {
+            throw new BusinessException("分类名称不能为空");
+        }
+        if (!StringUtils.hasText(category.getCode())) {
+            category.setCode("category-" + System.currentTimeMillis());
+        }
+        if (category.getStatus() == null) {
+            category.setStatus(1);
+        }
+        if (category.getSortOrder() == null) {
+            category.setSortOrder(0);
+        }
+        categoryMapper.insert(category);
+        return ApiResult.success(category);
+    }
+
+    @PutMapping("/article/category/{id}")
+    public ApiResult<ArticleCategory> updateCategory(@PathVariable Long id, @RequestBody ArticleCategory category) {
+        if (!StringUtils.hasText(category.getName())) {
+            throw new BusinessException("分类名称不能为空");
+        }
+        category.setId(id);
+        category.setUpdatedAt(LocalDateTime.now());
+        categoryMapper.updateById(category);
+        return ApiResult.success(categoryMapper.selectById(id));
+    }
+
+    @DeleteMapping("/article/category/{id}")
+    public ApiResult<Void> deleteCategory(@PathVariable Long id) {
+        Long articleCount = articleMapper.selectCount(new LambdaQueryWrapper<Article>()
+                .eq(Article::getCategoryId, id));
+        if (articleCount != null && articleCount > 0) {
+            throw new BusinessException("该分类下还有文章，不能删除");
+        }
+        categoryMapper.deleteById(id);
+        return ApiResult.success();
     }
 
     @GetMapping("/article/page")

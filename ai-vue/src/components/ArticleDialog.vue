@@ -2,105 +2,127 @@
   <el-dialog
     v-model="dialogVisible"
     :title="isEdit ? '编辑记录文章' : '新增记录文章'"
-    width="760px"
+    width="980px"
     destroy-on-close
     @close="handleClose"
   >
-    <el-form ref="formRef" :model="formData" :rules="rules" label-width="110px">
-      <el-form-item label="文章标题" prop="title">
-        <el-input
-          v-model="formData.title"
-          placeholder="例如：重温《葬送的芙莉莲》第 14 集"
-          maxlength="200"
-          show-word-limit
-          clearable
-        />
-      </el-form-item>
+    <el-tabs v-model="activeTab" class="article-editor-tabs">
+      <el-tab-pane label="编辑" name="edit">
+        <el-form ref="formRef" :model="formData" :rules="rules" label-width="96px">
+          <el-form-item label="文章标题" prop="title">
+            <el-input
+              v-model="formData.title"
+              placeholder="例如：重温《葬送的芙莉莲》第 14 集"
+              maxlength="200"
+              show-word-limit
+              clearable
+            />
+          </el-form-item>
 
-      <el-form-item label="文章分类" prop="categoryId">
-        <el-select v-model="formData.categoryId" placeholder="请选择分类" filterable>
-          <el-option
-            v-for="item in props.categories"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
-          />
-        </el-select>
-      </el-form-item>
+          <el-row :gutter="16">
+            <el-col :span="12">
+              <el-form-item label="文章分类" prop="categoryId">
+                <el-select v-model="formData.categoryId" placeholder="请选择分类" filterable class="full-select">
+                  <el-option
+                    v-for="item in props.categories"
+                    :key="item.value"
+                    :label="item.label"
+                    :value="item.value"
+                  />
+                </el-select>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="作者">
+                <el-input v-model="formData.authorName" placeholder="默认 ZG" clearable />
+              </el-form-item>
+            </el-col>
+          </el-row>
 
-      <el-form-item label="文章摘要" prop="summary">
-        <el-input
-          v-model="formData.summary"
-          type="textarea"
-          placeholder="写一段会出现在卡片上的短评或导语"
-          maxlength="1000"
-          :rows="4"
-          show-word-limit
-          clearable
-        />
-      </el-form-item>
+          <el-form-item label="文章摘要" prop="summary">
+            <el-input
+              v-model="formData.summary"
+              type="textarea"
+              placeholder="写一段会出现在卡片上的短评或导语"
+              maxlength="1000"
+              :rows="3"
+              show-word-limit
+              clearable
+            />
+          </el-form-item>
 
-      <el-form-item label="标签" prop="tags">
-        <el-select
-          v-model="formData.tagArray"
-          placeholder="选择或输入标签"
-          multiple
-          filterable
-          allow-create
-          class="full-select"
-        >
-          <el-option v-for="item in commonTags" :key="item" :label="item" :value="item" />
-        </el-select>
-      </el-form-item>
+          <el-form-item label="标签" prop="tags">
+            <el-select
+              v-model="formData.tagArray"
+              placeholder="选择或输入标签"
+              multiple
+              filterable
+              allow-create
+              class="full-select"
+            >
+              <el-option v-for="item in commonTags" :key="item" :label="item" :value="item" />
+            </el-select>
+          </el-form-item>
 
-      <el-form-item label="封面图片">
-        <div class="cover-upload">
-          <el-upload
-            action="#"
-            :before-upload="beforeUpload"
-            :http-request="handleUpload"
-            :show-file-list="false"
-            accept="image/*"
-          >
-            <div v-if="!imgUrl" class="cover-placeholder">
-              <span>点击上传封面</span>
-              <small>建议 16:9，单张不超过 5MB</small>
+          <el-form-item label="封面图片">
+            <div class="cover-upload">
+              <el-upload
+                action="#"
+                :before-upload="beforeUpload"
+                :http-request="handleUpload"
+                :show-file-list="false"
+                accept="image/*"
+              >
+                <div v-if="!imgUrl" class="cover-placeholder">
+                  <span>点击上传封面</span>
+                  <small>建议 16:9，单张不超过 5MB</small>
+                </div>
+                <img v-else :src="imgUrl" alt="文章封面预览" class="cover-image" @error="handlePreviewError" />
+              </el-upload>
+
+              <div class="cover-actions">
+                <el-button v-if="imgUrl" type="danger" size="small" plain @click.stop="removeCover">
+                  删除封面
+                </el-button>
+                <p v-if="uploadError" class="upload-error">{{ uploadError }}</p>
+              </div>
             </div>
-            <img v-else :src="imgUrl" alt="文章封面预览" class="cover-image" @error="handlePreviewError" />
-          </el-upload>
+          </el-form-item>
 
-          <div class="cover-actions">
-            <el-button v-if="imgUrl" type="danger" size="small" plain @click.stop="removeCover">
-              删除封面
-            </el-button>
-            <p v-if="uploadError" class="upload-error">{{ uploadError }}</p>
+          <el-form-item label="文章内容" prop="content">
+            <RichTextEditor
+              v-model="formData.content"
+              :max-char-count="12000"
+              height="420px"
+              placeholder="写下剧情记录、观后感、设定整理或补番笔记"
+              @change="handleContentChange"
+            />
+          </el-form-item>
+        </el-form>
+      </el-tab-pane>
+
+      <el-tab-pane label="预览" name="preview">
+        <article class="article-preview">
+          <img v-if="previewImage" :src="previewImage" alt="封面预览" @error="handlePreviewError" />
+          <div class="preview-head">
+            <span>{{ previewCategory }}</span>
+            <h1>{{ formData.title || '未命名记录文章' }}</h1>
+            <p v-if="formData.summary">{{ formData.summary }}</p>
+            <small>{{ formData.authorName || 'ZG' }} · {{ statusText }}</small>
           </div>
-        </div>
-      </el-form-item>
-
-      <el-form-item label="文章内容" prop="content">
-        <RichTextEditor
-          v-model="formData.content"
-          :max-char-count="12000"
-          height="420px"
-          placeholder="写下剧情记录、观后感、设定整理或补番笔记"
-          @change="handleContentChange"
-        />
-      </el-form-item>
-    </el-form>
-
-    <section v-if="previewVisible" class="content-preview">
-      <h3>内容预览</h3>
-      <div v-html="formData.content"></div>
-    </section>
+          <section class="preview-body" v-html="formData.content || '<p>正文内容会显示在这里。</p>'"></section>
+        </article>
+      </el-tab-pane>
+    </el-tabs>
 
     <template #footer>
-      <el-button @click="previewVisible = !previewVisible">
-        {{ previewVisible ? '关闭预览' : '预览内容' }}
+      <el-button @click="activeTab = activeTab === 'preview' ? 'edit' : 'preview'">
+        {{ activeTab === 'preview' ? '返回编辑' : '预览效果' }}
       </el-button>
       <el-button @click="handleClose">取消</el-button>
-      <el-button type="primary" :loading="loading" @click="handleSubmit">
-        {{ isEdit ? '保存修改' : '新增文章' }}
+      <el-button :loading="loading" @click="handleSubmit(0)">保存草稿</el-button>
+      <el-button type="primary" :loading="loading" @click="handleSubmit(1)">
+        保存并发布
       </el-button>
     </template>
   </el-dialog>
@@ -139,6 +161,8 @@ const emptyForm = () => ({
   summary: '',
   tags: '',
   tagArray: [],
+  authorName: 'ZG',
+  status: 0,
 })
 
 const dialogVisible = computed({
@@ -150,10 +174,15 @@ const formRef = ref()
 const formData = reactive(emptyForm())
 const imgUrl = ref('')
 const uploadError = ref('')
-const previewVisible = ref(false)
+const activeTab = ref('edit')
 const loading = ref(false)
 
 const isEdit = computed(() => Boolean(props.article?.id))
+const previewImage = computed(() => imgUrl.value || resolveFileUrl(getArticleCover(formData), ''))
+const previewCategory = computed(() => {
+  return props.categories.find((item) => item.value === formData.categoryId)?.label || '番剧'
+})
+const statusText = computed(() => (Number(formData.status) === 1 ? '已发布' : '草稿'))
 
 const rules = {
   title: [
@@ -183,7 +212,7 @@ const resetFormData = () => {
   Object.assign(formData, emptyForm())
   imgUrl.value = ''
   uploadError.value = ''
-  previewVisible.value = false
+  activeTab.value = 'edit'
   nextTick(() => formRef.value?.clearValidate())
 }
 
@@ -236,24 +265,32 @@ const handleContentChange = (html) => {
   formData.content = html
 }
 
-const handleSubmit = async () => {
-  const valid = await formRef.value?.validate().catch(() => false)
-  if (!valid) return
-
-  loading.value = true
+const buildSubmitData = (status) => {
   const submitData = {
     ...formData,
+    status,
     tags: formData.tagArray.join(','),
   }
   delete submitData.tagArray
+  return submitData
+}
+
+const handleSubmit = async (status) => {
+  const valid = await formRef.value?.validate().catch(() => false)
+  if (!valid) {
+    activeTab.value = 'edit'
+    return
+  }
+
+  loading.value = true
 
   try {
     if (isEdit.value) {
-      await updateArticle(props.article.id, submitData)
-      ElMessage.success('文章已更新')
+      await updateArticle(props.article.id, buildSubmitData(status))
+      ElMessage.success(status === 1 ? '文章已保存并发布' : '草稿已保存')
     } else {
-      await addArticle(submitData)
-      ElMessage.success('文章已新增')
+      await addArticle(buildSubmitData(status))
+      ElMessage.success(status === 1 ? '文章已新增并发布' : '草稿已新增')
     }
     emit('success')
     handleClose()
@@ -269,6 +306,7 @@ const applyArticle = (article) => {
   Object.assign(formData, {
     ...article,
     tagArray: article.tags ? article.tags.split(',').map((tag) => tag.trim()).filter(Boolean) : [],
+    authorName: article.authorName || 'ZG',
   })
   imgUrl.value = resolveFileUrl(getArticleCover(article))
 }
@@ -300,6 +338,10 @@ watch(
 </script>
 
 <style lang="scss" scoped>
+.article-editor-tabs {
+  min-height: 560px;
+}
+
 .full-select {
   width: 100%;
 }
@@ -353,17 +395,58 @@ watch(
   font-size: 12px;
 }
 
-.content-preview {
-  max-height: 260px;
-  margin-top: 18px;
-  padding: 18px;
-  overflow: auto;
+.article-preview {
+  overflow: hidden;
+  border: 1px solid #d8e1ed;
   border-radius: 8px;
-  background: #f8fafc;
+  background: #071b35;
+  color: #e6f1ff;
 
-  h3 {
-    margin-bottom: 12px;
-    color: #1f2937;
+  img {
+    display: block;
+    width: 100%;
+    height: 260px;
+    object-fit: cover;
+  }
+}
+
+.preview-head {
+  padding: 24px 28px;
+  background: rgba(10, 25, 47, 0.7);
+
+  span {
+    color: #64ffda;
+    font-weight: 900;
+  }
+
+  h1 {
+    margin: 10px 0;
+    color: #fff;
+    font-size: 30px;
+    line-height: 1.25;
+  }
+
+  p {
+    color: #c7d6eb;
+    line-height: 1.8;
+  }
+
+  small {
+    color: #8fa3bd;
+  }
+}
+
+.preview-body {
+  min-height: 180px;
+  padding: 28px;
+  color: #d8e6f7;
+  font-size: 16px;
+  line-height: 1.9;
+  word-break: break-word;
+
+  :deep(img) {
+    max-width: 100%;
+    border-radius: 6px;
   }
 }
 </style>

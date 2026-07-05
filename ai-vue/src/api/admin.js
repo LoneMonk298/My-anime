@@ -29,7 +29,19 @@ export function updateAdminPassword(data) {
 }
 
 export function categoryTree() {
-  return service.get('/article/category/tree')
+  return service.get('/article/category/tree', { params: { includeDisabled: true } })
+}
+
+export function addCategory(data) {
+  return service.post('/article/category', data)
+}
+
+export function updateCategory(id, data) {
+  return service.put(`/article/category/${id}`, data)
+}
+
+export function deleteCategory(id) {
+  return service.delete(`/article/category/${id}`)
 }
 
 export function articleList(params) {

@@ -53,6 +53,9 @@ Database exceptions are handled separately and return a database-specific messag
 - `POST /api/user/register`
 - `POST /api/user/logout`
 - `GET /api/article/category/tree`
+- `POST /api/article/category`
+- `PUT /api/article/category/{id}`
+- `DELETE /api/article/category/{id}`
 - `GET /api/article/page`
 - `GET /api/article/{id}`
 - `GET /api/article/{id}/view`

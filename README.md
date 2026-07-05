@@ -69,6 +69,7 @@ mvn spring-boot:run
 - Admin articles: `/user/articles`
 - Article API: `/api/article/...`
 - Public article view API: `/api/article/{id}/view`
+- Category management API: `/api/article/category/...`
 - Upload API: `/api/file/upload`
 
 ## Database
