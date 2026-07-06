@@ -46,6 +46,15 @@ const routes = [
     },
   },
   {
+    path: '/links',
+    name: 'FriendLinks',
+    component: () => import('@/views/Links.vue'),
+    meta: {
+      public: true,
+      title: '网址导航',
+    },
+  },
+  {
     path: '/auth',
     component: AuthLayout,
     children: [
@@ -98,6 +107,17 @@ const routes = [
         meta: {
           title: '资源管理',
           icon: 'FolderOpened',
+          requiresAuth: true,
+          requiresAdmin: true,
+        },
+      },
+      {
+        path: 'links',
+        name: 'FriendLinkAdmin',
+        component: () => import('@/views/admin/FriendLinks.vue'),
+        meta: {
+          title: '友链管理',
+          icon: 'Link',
           requiresAuth: true,
           requiresAdmin: true,
         },

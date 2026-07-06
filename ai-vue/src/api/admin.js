@@ -1,7 +1,7 @@
 import service from '@/utils/request'
 
 export function login(data) {
-  return service.post('/user/login', data)
+  return service.post('/user/login', data, { silent: true })
 }
 
 export function register(data) {
@@ -26,6 +26,10 @@ export function createAdmin(data) {
 
 export function updateAdminPassword(data) {
   return service.put('/user/password', data)
+}
+
+export function dashboardSummary() {
+  return service.get('/dashboard/summary')
 }
 
 export function categoryTree() {
@@ -57,6 +61,7 @@ export function uploadFile(file, businessInfo = {}) {
 
   return service.post('/file/upload', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 60000,
   })
 }
 
@@ -78,4 +83,24 @@ export function deleteArticle(id) {
 
 export function changeArticleStatus(id, data) {
   return service.put(`/article/${id}/status`, data)
+}
+
+export function friendLinkList(params) {
+  return service.get('/link/page', { params })
+}
+
+export function addFriendLink(data) {
+  return service.post('/link', data)
+}
+
+export function updateFriendLink(id, data) {
+  return service.put(`/link/${id}`, data)
+}
+
+export function changeFriendLinkStatus(id, data) {
+  return service.put(`/link/${id}/status`, data)
+}
+
+export function deleteFriendLink(id) {
+  return service.delete(`/link/${id}`)
 }

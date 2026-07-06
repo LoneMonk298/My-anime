@@ -19,9 +19,23 @@
           <i class="fa-solid fa-home" aria-hidden="true"></i>
           HOME
         </button>
-        <a href="https://www.bilibili.com/" target="_blank" rel="noreferrer">B站官网</a>
-        <a href="https://xifan.moe" target="_blank" rel="noreferrer">稀饭动漫</a>
-        <button type="button" @click="goAdmin">管理后台</button>
+        <button
+          class="mobile-menu-toggle"
+          type="button"
+          :aria-expanded="mobileMenuOpen"
+          aria-label="展开导航"
+          @click="mobileMenuOpen = !mobileMenuOpen"
+        >
+          <i :class="mobileMenuOpen ? 'fa-solid fa-xmark' : 'fa-solid fa-bars'" aria-hidden="true"></i>
+        </button>
+        <div class="nav-links" :class="{ open: mobileMenuOpen }">
+          <a href="https://www.lonemonk.xyz" target="_blank" rel="noreferrer">个人主页</a>
+          <a href="https://www.bilibili.com/" target="_blank" rel="noreferrer">B站官网</a>
+          <a href="https://www.pixiv.net/" target="_blank" rel="noreferrer">P站官网</a>
+          <a href="https://xifan.moe" target="_blank" rel="noreferrer">稀饭动漫</a>
+          <button type="button" @click="router.push('/links')">槿篱游戏</button>
+          <button type="button" @click="goAdmin">管理后台</button>
+        </div>
       </nav>
 
       <section class="latest-news">
@@ -124,6 +138,7 @@ const categories = ref([])
 const loading = ref(false)
 const loadError = ref('')
 const now = ref(new Date())
+const mobileMenuOpen = ref(false)
 let clockTimer = null
 
 const fallbackImages = ['/anime-assets/cover-rezero.jpg', '/anime-assets/cover-chunibyo.jpg']
@@ -386,6 +401,11 @@ onBeforeUnmount(() => {
   background: var(--nav);
 }
 
+.nav-links {
+  display: flex;
+  align-items: stretch;
+}
+
 .nav-spacer {
   display: block;
   width: var(--gutter);
@@ -395,7 +415,8 @@ onBeforeUnmount(() => {
 }
 
 .main-nav a,
-.main-nav button {
+.main-nav button,
+.mobile-menu-toggle {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -413,6 +434,10 @@ onBeforeUnmount(() => {
   text-decoration: none;
   line-height: 1;
   transition: background 0.18s ease, color 0.18s ease;
+}
+
+.main-nav .mobile-menu-toggle {
+  display: none;
 }
 
 .main-nav i {
@@ -783,10 +808,12 @@ onBeforeUnmount(() => {
   }
 
   .main-nav {
-    height: 44px;
-    overflow-x: hidden;
-    overflow-y: hidden;
+    position: relative;
+    height: auto;
+    min-height: 44px;
+    overflow: visible;
     scrollbar-width: none;
+    flex-wrap: wrap;
   }
 
   .main-nav::-webkit-scrollbar {
@@ -796,15 +823,73 @@ onBeforeUnmount(() => {
   .nav-spacer {
     flex: 0 0 var(--gutter);
     width: var(--gutter);
+    height: 44px;
   }
 
-  .main-nav a,
-  .main-nav button {
-    flex: 1 1 0;
+  .main-nav .home-link {
+    flex: 0 0 44px;
+    width: 44px;
+    min-width: 44px;
+    max-width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+    font-size: 0;
+  }
+
+  .main-nav .home-link i {
+    margin-right: 0;
+    font-size: 18px;
+  }
+
+  .main-nav .mobile-menu-toggle {
+    display: inline-flex;
+    position: absolute;
+    left: 50%;
+    top: 6px;
+    z-index: 5;
+    flex: 0 0 54px;
+    width: 54px;
+    min-width: 54px;
+    max-width: 54px;
+    height: 32px;
+    padding: 0;
+    border: 1px solid #fff;
+    border-radius: 4px;
+    background: #06182e;
+    transform: translateX(-50%);
+    box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.65);
+  }
+
+  .main-nav .mobile-menu-toggle i {
+    margin: 0;
+    font-size: 22px;
+  }
+
+  .nav-links {
+    position: static;
+    z-index: 4;
+    flex: 0 0 100%;
+    width: 100%;
+    display: none;
+    padding: 18px 0 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.13);
+    background: var(--nav);
+    box-shadow: 0 16px 28px rgba(0, 0, 0, 0.28);
+  }
+
+  .nav-links.open {
+    display: block;
+  }
+
+  .main-nav .nav-links a,
+  .main-nav .nav-links button {
+    width: 100%;
     min-width: 0;
-    padding: 0 4px;
-    font-size: 12px;
-    white-space: nowrap;
+    height: 52px;
+    justify-content: flex-start;
+    padding: 0 24px;
+    font-size: 15px;
   }
 
   .main-nav i {
@@ -902,8 +987,29 @@ onBeforeUnmount(() => {
 
   .main-nav a,
   .main-nav button {
-    padding: 0 3px;
-    font-size: 12px;
+    padding: 0 6px;
+  }
+
+  .main-nav .home-link {
+    flex: 0 0 44px;
+    width: 44px;
+    min-width: 44px;
+    max-width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+    font-size: 0;
+  }
+
+  .nav-links {
+    padding-top: 14px;
+    padding-bottom: 16px;
+  }
+
+  .main-nav .nav-links a,
+  .main-nav .nav-links button {
+    height: 50px;
+    padding-inline: 20px;
   }
 
   .latest-news {

@@ -28,7 +28,9 @@ service.interceptors.response.use(
 
     if (code === -1) {
       if (!config.url?.includes('/login')) {
-        ElMessage.error(data.msg || '登录过期，请重新登录')
+        if (!config.silent) {
+          ElMessage.error(data.msg || '登录过期，请重新登录')
+        }
         localStorage.removeItem('token')
         localStorage.removeItem('userInfo')
         localStorage.removeItem('privacyAccepted')
@@ -36,15 +38,22 @@ service.interceptors.response.use(
         return Promise.reject(new Error(data.msg || '登录过期'))
       }
 
-      ElMessage.error(data.msg || '登录失败')
+      if (!config.silent) {
+        ElMessage.error(data.msg || '登录失败')
+      }
       return Promise.reject(new Error(data.msg || '登录失败'))
     }
 
     return Promise.reject(new Error(data ? (data.msg || '请求失败') : '响应数据为空'))
   },
   (error) => {
-    const message = error.response?.data?.msg || error.message || '网络错误'
-    ElMessage.error(message)
+    const message =
+      error.code === 'ECONNABORTED'
+        ? '请求超时，请检查网络或稍后重试'
+        : error.response?.data?.msg || error.message || '网络错误'
+    if (!error.config?.silent) {
+      ElMessage.error(message)
+    }
     return Promise.reject(error)
   },
 )

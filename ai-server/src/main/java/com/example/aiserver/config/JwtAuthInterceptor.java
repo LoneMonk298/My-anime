@@ -36,11 +36,15 @@ public class JwtAuthInterceptor implements HandlerInterceptor {
             "/user/register",
             "/user/password/reset-code",
             "/user/password/reset",
+            "/link/apply",
+            "/link/*/visit",
+            "/anime-assets/**",
             "/uploads/**"
     );
 
     private final List<String> adminPaths = List.of(
-            "/user/admin"
+            "/user/admin",
+            "/dashboard/**"
     );
 
     @Override
@@ -108,7 +112,8 @@ public class JwtAuthInterceptor implements HandlerInterceptor {
             return !"true".equalsIgnoreCase(request.getParameter("includeDisabled"));
         }
         return ("/article/page".equals(path) && "1".equals(request.getParameter("status")))
-                || pathMatcher.match("/article/{id}/view", path);
+                || pathMatcher.match("/article/{id}/view", path)
+                || "/link/enabled".equals(path);
     }
 
     private boolean requiresAdmin(HttpServletRequest request, String path) {
@@ -126,6 +131,9 @@ public class JwtAuthInterceptor implements HandlerInterceptor {
         }
         if (pathMatcher.match("/article/**", path)) {
             return !"GET".equalsIgnoreCase(request.getMethod());
+        }
+        if (pathMatcher.match("/link/**", path)) {
+            return true;
         }
         return false;
     }

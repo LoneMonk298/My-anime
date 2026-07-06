@@ -38,6 +38,7 @@
             <div v-if="!isRegister" key="login" class="form-content">
               <p class="eyebrow">Anime Record Console</p>
               <h1>登录账号</h1>
+              <p v-if="authError" class="auth-error">{{ authError }}</p>
               <el-form
                 ref="loginFormRef"
                 :model="loginData"
@@ -180,6 +181,7 @@ const loginFormRef = ref()
 const registerFormRef = ref()
 const loginLoading = ref(false)
 const registerLoading = ref(false)
+const authError = ref('')
 const forgotDialogVisible = ref(false)
 const sendingCode = ref(false)
 const resettingPassword = ref(false)
@@ -251,6 +253,7 @@ const refreshCaptcha = () => {
 
 const toggleMode = () => {
   isRegister.value = !isRegister.value
+  authError.value = ''
   refreshCaptcha()
 }
 
@@ -338,8 +341,14 @@ const handleResetPassword = async () => {
 }
 
 const handleLogin = async () => {
+  authError.value = ''
   const valid = await loginFormRef.value?.validate().catch(() => false)
-  if (!valid || !checkCaptcha(loginData.captcha)) return
+  if (!valid) return
+  if (loginData.captcha.toUpperCase() !== captchaCode.value.toUpperCase()) {
+    refreshCaptcha()
+    authError.value = '验证码错误，请重新输入'
+    return
+  }
 
   loginLoading.value = true
   try {
@@ -362,6 +371,9 @@ const handleLogin = async () => {
       ? route.query.redirect
       : resolveHomePath(userInfo)
     router.replace(redirect)
+  } catch (error) {
+    authError.value = error?.message || '登录失败，请检查用户名或密码'
+    refreshCaptcha()
   } finally {
     loginLoading.value = false
   }
@@ -620,6 +632,18 @@ onBeforeUnmount(() => {
   color: #332a2a;
   font-size: 2rem;
   letter-spacing: 2px;
+}
+
+.auth-error {
+  margin: -1rem 0 1rem;
+  padding: 10px 12px;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 12px;
+  background: rgba(254, 226, 226, 0.78);
+  color: #b91c1c;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.45;
 }
 
 .fade-enter-active,

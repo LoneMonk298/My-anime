@@ -22,6 +22,7 @@ export const resolveFileUrl = (filePath, fallback = '') => {
   if (/^(https?:)?\/\//i.test(path) || path.startsWith('blob:') || path.startsWith('data:')) {
     return path
   }
+  if (path.startsWith('/anime-assets/')) return path
   if (path.startsWith(filebaseURL + '/')) return path
   if (path.startsWith('/')) return `${filebaseURL}${path}`
   return `${filebaseURL}/${path}`

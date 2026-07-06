@@ -4,8 +4,9 @@
       <div>
         <p class="eyebrow">Overview</p>
         <h1>仪表盘</h1>
-        <span>记录站运营概览，后续会接入文章、资源、用户和下载数据。</span>
+        <span>记录站运营概览，快速查看内容、友链、资源和用户数据。</span>
       </div>
+      <el-button :loading="loading" @click="fetchSummary">刷新数据</el-button>
     </div>
 
     <div class="metric-grid">
@@ -19,12 +20,19 @@
     <div class="panel-grid">
       <section class="panel">
         <div class="panel-head">
-          <h2>近期待办</h2>
-          <span>Roadmap</span>
+          <h2>最近发布</h2>
+          <span>Published</span>
         </div>
-        <ul class="task-list">
-          <li v-for="task in tasks" :key="task">{{ task }}</li>
+        <ul v-if="recentPublished.length" class="recent-list">
+          <li v-for="article in recentPublished" :key="article.id" @click="router.push(`/article/${article.id}`)">
+            <div>
+              <strong>{{ article.title }}</strong>
+              <span>{{ formatDate(article.publishedAt || article.updatedAt) }} · {{ article.authorName || 'ZG' }}</span>
+            </div>
+            <small>{{ article.readCount || 0 }} reads</small>
+          </li>
         </ul>
+        <el-empty v-else description="暂无已发布文章" />
       </section>
 
       <section class="panel">
@@ -44,30 +52,67 @@
 </template>
 
 <script setup>
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { dashboardSummary } from '@/api/admin'
 
 const router = useRouter()
+const loading = ref(false)
+const summary = ref({
+  articleCount: 0,
+  publishedCount: 0,
+  draftCount: 0,
+  pendingFriendLinkCount: 0,
+  resourceCount: 0,
+  userCount: 0,
+  totalReadCount: 0,
+  recentPublished: [],
+})
 
-const metrics = [
-  { label: '文章总数', value: '--', hint: '待接入文章统计接口' },
-  { label: '资源数量', value: '--', hint: '待新增资源表' },
-  { label: '注册用户', value: '--', hint: '后续用于下载权限' },
-  { label: '总阅读量', value: '--', hint: '用于观察内容热度' },
-]
+const metrics = computed(() => [
+  { label: '文章总数', value: summary.value.articleCount, hint: '后台已创建的全部记录文章' },
+  { label: '已发布', value: summary.value.publishedCount, hint: '前台可见文章数量' },
+  { label: '草稿数', value: summary.value.draftCount, hint: '待继续编辑或待发布' },
+  { label: '友链申请', value: summary.value.pendingFriendLinkCount, hint: '等待审核的网站申请' },
+  { label: '资源数', value: summary.value.resourceCount, hint: '资源模块已登记条目' },
+  { label: '用户数', value: summary.value.userCount, hint: '后台与普通账号总量' },
+  { label: '总阅读', value: summary.value.totalReadCount, hint: '已记录文章阅读累计' },
+])
 
-const tasks = [
-  '完善资源管理表结构和后端 CRUD',
-  '接入用户列表、禁用和角色管理',
-  '补充资源下载权限和访问统计',
-  '为仪表盘增加趋势图与最近动态',
-]
+const recentPublished = computed(() => Array.isArray(summary.value.recentPublished) ? summary.value.recentPublished : [])
 
 const modules = [
   { title: '记录文章', desc: '维护文章、分类、发布状态和封面', path: '/user/articles' },
+  { title: '友链管理', desc: '审核申请、排序、分类和站点 LOGO', path: '/user/links' },
   { title: '资源管理', desc: '管理番剧资料、网盘链接和分类', path: '/user/resources' },
   { title: '用户管理', desc: '管理账号、角色和下载权限基础', path: '/user/users' },
-  { title: '系统设置', desc: '站点配置、公告和后续开关项', path: '/user/settings' },
 ]
+
+const fetchSummary = async () => {
+  loading.value = true
+  try {
+    const res = await dashboardSummary()
+    summary.value = {
+      ...summary.value,
+      ...(res?.data || {}),
+    }
+  } finally {
+    loading.value = false
+  }
+}
+
+const formatDate = (value) => {
+  if (!value) return '未记录时间'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return String(value).slice(0, 10)
+  return date.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  })
+}
+
+onMounted(fetchSummary)
 </script>
 
 <style lang="scss" scoped>
@@ -133,7 +178,7 @@ const modules = [
 
 .panel-grid {
   display: grid;
-  grid-template-columns: 1fr 1.2fr;
+  grid-template-columns: 1fr 1.1fr;
   gap: 16px;
 }
 
@@ -160,12 +205,48 @@ const modules = [
   }
 }
 
-.task-list {
+.recent-list {
   display: grid;
-  gap: 12px;
-  padding-left: 18px;
-  color: #334155;
-  line-height: 1.7;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 12px;
+    border: 1px solid #edf2f7;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+
+    &:hover {
+      border-color: #64ffda;
+      transform: translateY(-1px);
+    }
+  }
+
+  div {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  strong {
+    overflow: hidden;
+    color: #111827;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  span,
+  small {
+    color: #64748b;
+    font-size: 12px;
+  }
 }
 
 .module-list {
@@ -200,7 +281,13 @@ const modules = [
   }
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1200px) {
+  .metric-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
   .metric-grid,
   .panel-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
