@@ -1,5 +1,19 @@
 <template>
   <div class="login-wrapper">
+    <video
+      class="login-bg-video"
+      autoplay
+      muted
+      loop
+      playsinline
+      preload="metadata"
+      poster="/anime-assets/background.png"
+      aria-hidden="true"
+    >
+      <source src="/anime-assets/skystar.mp4" type="video/mp4" />
+    </video>
+    <div class="login-bg-mask" aria-hidden="true"></div>
+
     <div class="login-page">
       <div class="container" :class="{ active: isRegister }">
         <section class="welcome-box">
@@ -9,7 +23,7 @@
             {{
               isRegister
                 ? '已有账号？切回登录后即可进入你的记录空间。'
-                : '登录后台管理文章、封面、分类与发布状态；普通账号后续会用于 AI 角色对话和资源下载。'
+                : '登录后台管理文章、封面、分类与发布状态；普通账号用于 AI 角色对话和资源下载。'
             }}
           </p>
           <button type="button" @click="toggleMode">
@@ -402,6 +416,7 @@ onBeforeUnmount(() => {
   justify-content: center;
   padding: 20px;
   overflow: auto;
+  overflow-x: hidden;
   background:
     linear-gradient(200deg, rgba(243, 231, 233, 0.25), rgba(227, 238, 255, 0.18)),
     radial-gradient(circle at 22% 18%, rgba(100, 255, 218, 0.2), transparent 28%),
@@ -409,8 +424,41 @@ onBeforeUnmount(() => {
     url('/anime-assets/frontnav.png') center / cover no-repeat;
 }
 
+.login-wrapper,
+.login-wrapper *,
+.login-wrapper *::before,
+.login-wrapper *::after {
+  box-sizing: border-box;
+}
+
+.login-bg-video,
+.login-bg-mask {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.login-bg-video {
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.72) saturate(0.95);
+  transform: scale(1.02);
+}
+
+.login-bg-mask {
+  z-index: 1;
+  background:
+    linear-gradient(180deg, rgba(6, 16, 31, 0.28), rgba(6, 16, 31, 0.44)),
+    radial-gradient(circle at 20% 18%, rgba(100, 255, 218, 0.18), transparent 30%),
+    radial-gradient(circle at 78% 82%, rgba(248, 206, 236, 0.22), transparent 34%);
+  backdrop-filter: blur(1px);
+}
+
 .login-page {
   position: relative;
+  z-index: 2;
   width: min(900px, 100%);
   height: min(580px, calc(100vh - 40px));
   min-height: 560px;
@@ -555,6 +603,7 @@ onBeforeUnmount(() => {
 .form-content {
   width: 100%;
   max-width: 340px;
+  min-width: 0;
 }
 
 .eyebrow {
@@ -587,6 +636,12 @@ onBeforeUnmount(() => {
   margin-bottom: 1.15rem;
 }
 
+:deep(.el-form),
+:deep(.el-form-item__content) {
+  width: 100%;
+  min-width: 0;
+}
+
 :deep(.el-input__wrapper) {
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
@@ -600,7 +655,8 @@ onBeforeUnmount(() => {
 
 .captcha-group,
 .reset-code-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   width: 100%;
   align-items: center;
   gap: 10px;
@@ -609,6 +665,7 @@ onBeforeUnmount(() => {
 .captcha-group :deep(.el-input),
 .reset-code-row :deep(.el-input) {
   flex: 1;
+  min-width: 0;
 }
 
 .captcha-img {
@@ -730,7 +787,13 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 760px) {
+  .login-wrapper {
+    align-items: flex-start;
+    padding: 16px;
+  }
+
   .login-page {
+    width: min(390px, 100%);
     height: auto;
     min-height: 0;
   }
@@ -750,10 +813,96 @@ onBeforeUnmount(() => {
 
   .welcome-box {
     min-height: 230px;
+    padding: 34px 24px;
   }
 
   .form-box {
-    min-height: 430px;
+    min-height: 0;
+    padding: 40px 24px 34px;
+  }
+
+  .form-content {
+    max-width: 100%;
+  }
+
+  .form-box h1 {
+    margin-bottom: 1.5rem;
+    font-size: 1.85rem;
+  }
+
+  .forgot-row {
+    justify-content: flex-start;
+    margin: -0.3rem 0 0.7rem;
+  }
+
+  .captcha-group,
+  .reset-code-row {
+    grid-template-columns: minmax(0, 1fr) minmax(72px, auto);
+    gap: 8px;
+  }
+
+  .captcha-img {
+    min-width: 72px;
+    padding: 10px 8px;
+    font-size: 1rem;
+    letter-spacing: 1px;
+  }
+
+  .close-btn {
+    top: 12px;
+    right: 12px;
+  }
+}
+
+@media (max-width: 420px) {
+  .login-wrapper {
+    padding: 10px;
+  }
+
+  .login-page {
+    border-radius: 18px;
+    padding: 3px;
+  }
+
+  .container {
+    border-radius: 15px;
+  }
+
+  .welcome-box {
+    min-height: 210px;
+    padding: 30px 22px;
+  }
+
+  .welcome-box h2 {
+    margin-bottom: 1rem;
+    font-size: 2.05rem;
+  }
+
+  .welcome-box p {
+    margin-bottom: 1.35rem;
+    font-size: 0.94rem;
+    line-height: 1.65;
+  }
+
+  .form-box {
+    padding: 34px 22px 30px;
+  }
+
+  :deep(.el-form-item) {
+    margin-bottom: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-bg-video {
+    display: none;
+  }
+
+  .login-page::before,
+  .welcome-box h2,
+  .welcome-box p,
+  .welcome-box button {
+    animation: none;
   }
 }
 </style>

@@ -1257,6 +1257,10 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 980px) {
+  .anime-home {
+    --gutter: 18px;
+  }
+
   .feature-row,
   .post-grid {
     grid-template-columns: 1fr;
@@ -1268,26 +1272,251 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 640px) {
-  .top-clock,
+  .anime-home {
+    --gutter: 16px;
+  }
+
+  .top-clock {
+    height: 42px;
+    gap: 8px;
+    padding-left: var(--gutter);
+    font-size: 15px;
+    white-space: nowrap;
+  }
+
+  .top-clock strong {
+    padding: 3px 6px;
+  }
+
+  .nav-art {
+    height: 82px;
+    background-position: center 46%;
+  }
+
   .main-nav {
-    padding-left: 16px;
+    height: 44px;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    scrollbar-width: none;
+  }
+
+  .main-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav-spacer {
+    flex: 0 0 var(--gutter);
+    width: var(--gutter);
+  }
+
+  .main-nav a,
+  .main-nav button {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0 4px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .main-nav i {
+    margin-right: 3px;
+    font-size: 12px;
   }
 
   .latest-news {
-    grid-template-columns: 130px minmax(0, 1fr);
+    grid-template-columns: var(--gutter) minmax(112px, 132px) minmax(0, 1fr);
+    height: 44px;
+    padding-right: 0;
   }
 
   .latest-title {
-    padding-left: 18px;
+    padding-left: 16px;
     font-size: 18px;
   }
 
+  .latest-title::after {
+    right: -28px;
+    border-bottom-width: 44px;
+    border-right-width: 28px;
+  }
+
+  .latest-track {
+    padding-left: 42px;
+  }
+
+  .latest-marquee {
+    gap: 22px;
+    animation-duration: 24s;
+  }
+
+  .latest-marquee button {
+    font-size: 13px;
+  }
+
+  .page-content {
+    padding: 18px var(--gutter) 26px;
+  }
+
+  .feature-row {
+    gap: 18px;
+    margin-bottom: 20px;
+  }
+
+  .main-feature :deep(.el-carousel) {
+    height: min(500px, calc(100dvh - 250px)) !important;
+    min-height: 420px;
+  }
+
+  .feature-card img {
+    height: 58%;
+  }
+
   .feature-bottom {
-    padding: 24px;
+    position: static;
+    min-height: 42%;
+    padding: 20px 20px 24px;
+    background: rgba(7, 20, 38, 0.94);
+    backdrop-filter: none;
+  }
+
+  .feature-bottom h1 {
+    margin: 10px 0 12px;
+    font-size: 27px;
+    line-height: 1.22;
+  }
+
+  .meta-line {
+    gap: 12px;
+  }
+
+  .meta-line b {
+    font-size: 20px;
+  }
+
+  .empty-feature {
+    min-height: 420px;
+    padding: 28px 20px;
+  }
+
+  .empty-feature h1 {
+    font-size: 32px;
+    line-height: 1.2;
+  }
+
+  .empty-feature p {
+    max-width: 18em;
+    margin: 8px auto 0;
+    line-height: 1.55;
+  }
+
+  .tab-panel {
+    height: auto;
+    padding: 10px;
   }
 
   .tab-head {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .tab-head button {
+    min-height: 36px;
+    font-size: 14px;
+  }
+
+  .small-post-list {
+    max-height: 310px;
+    height: auto;
+  }
+
+  .small-post-list button {
+    grid-template-columns: 74px minmax(0, 1fr);
+    min-height: 68px;
+    padding: 8px;
+  }
+
+  .small-post-list img {
+    width: 74px;
+    height: 54px;
+  }
+
+  .post-grid {
+    gap: 18px;
+  }
+
+  .post-card img {
+    height: 180px;
+  }
+
+  .post-body {
+    padding: 16px;
+  }
+
+  .post-body h2 {
+    font-size: 21px;
+  }
+
+  .pager {
+    overflow-x: auto;
+    justify-content: flex-start;
+    padding-bottom: 4px;
+  }
+
+  .site-footer {
+    padding: 20px var(--gutter) 0;
+  }
+
+  .footer-motto {
+    min-height: 58px;
+    font-size: 25px;
+  }
+
+  .danmaku-wrap {
+    display: none;
+  }
+
+  .confirm-box {
+    width: calc(100vw - 36px);
+    min-width: 0;
+  }
+}
+
+@media (max-width: 420px) {
+  .anime-home {
+    --gutter: 14px;
+  }
+
+  .top-clock {
+    font-size: 14px;
+  }
+
+  .main-nav a,
+  .main-nav button {
+    padding: 0 3px;
+    font-size: 12px;
+  }
+
+  .latest-news {
+    grid-template-columns: var(--gutter) 118px minmax(0, 1fr);
+  }
+
+  .latest-track {
+    padding-left: 36px;
+  }
+
+  .page-content {
+    padding-top: 16px;
+  }
+
+  .main-feature :deep(.el-carousel) {
+    min-height: 410px;
+  }
+
+  .feature-bottom h1 {
+    font-size: 25px;
+  }
+
+  .post-card img {
+    height: 170px;
   }
 }
 </style>
