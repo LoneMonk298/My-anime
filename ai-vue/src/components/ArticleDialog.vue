@@ -110,7 +110,7 @@
             <p v-if="formData.summary">{{ formData.summary }}</p>
             <small>{{ formData.authorName || 'ZG' }} · {{ statusText }}</small>
           </div>
-          <section class="preview-body" v-html="formData.content || '<p>正文内容会显示在这里。</p>'"></section>
+          <section class="preview-body" v-html="renderPreviewContent(formData.content)"></section>
         </article>
       </el-tab-pane>
     </el-tabs>
@@ -132,6 +132,7 @@ import { ElMessage } from 'element-plus'
 import { addArticle, updateArticle, uploadFile } from '@/api/admin'
 import RichTextEditor from '@/components/RichTextEditor.vue'
 import { getArticleCover, resolveFileUrl } from '@/utils/fileUrl'
+import { renderContent } from '@/utils/markdown'
 
 const props = defineProps({
   modelValue: {
@@ -262,6 +263,8 @@ const removeCover = () => {
 const handleContentChange = (html) => {
   formData.content = html
 }
+
+const renderPreviewContent = (content) => renderContent(content || '正文内容会显示在这里。')
 
 const buildSubmitData = (status) => {
   const submitData = {

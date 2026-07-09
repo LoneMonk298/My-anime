@@ -36,7 +36,6 @@ public class JwtAuthInterceptor implements HandlerInterceptor {
             "/user/register",
             "/user/password/reset-code",
             "/user/password/reset",
-            "/link/apply",
             "/link/*/visit",
             "/anime-assets/**",
             "/uploads/**"
@@ -131,6 +130,9 @@ public class JwtAuthInterceptor implements HandlerInterceptor {
         }
         if (pathMatcher.match("/article/**", path)) {
             return !"GET".equalsIgnoreCase(request.getMethod());
+        }
+        if ("/link/apply".equals(path)) {
+            return false;
         }
         if (pathMatcher.match("/link/**", path)) {
             return true;

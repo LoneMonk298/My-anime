@@ -15,6 +15,7 @@
       <div class="top-clock">
         <span>{{ currentDateText }}</span>
         <strong>{{ currentTime }}</strong>
+        <FrontUserEntry />
       </div>
 
       <div class="nav-art" aria-hidden="true"></div>
@@ -202,6 +203,7 @@ import { dayjs } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { Clock, DataLine, Star } from '@element-plus/icons-vue'
 import { getArticleCategoryTree, getArticleList } from '@/api/frontend'
+import FrontUserEntry from '@/components/FrontUserEntry.vue'
 import { getArticleCover, resolveFileUrl } from '@/utils/fileUrl'
 
 const router = useRouter()
@@ -678,6 +680,13 @@ onBeforeUnmount(() => {
   color: #dce9ff;
   font-size: 16px;
   font-weight: 700;
+}
+
+.top-clock > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .top-clock strong {

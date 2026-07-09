@@ -15,7 +15,7 @@
       >
         {{ group.title }}
       </button>
-      <button class="apply-btn" type="button" @click="applyVisible = true">申请入驻</button>
+      <button class="apply-btn" type="button" @click="openApply">申请入驻</button>
     </aside>
 
     <main class="links-main">
@@ -149,6 +149,7 @@ const loading = ref(false)
 const links = ref([])
 const logoInput = ref(null)
 const logoPreview = ref('')
+const logoFile = ref(null)
 
 const tags = ['常用', '工具', '社区', '灵感']
 const categories = ['动漫', '博客', '娱乐', '导航', '工具', '公益']
@@ -218,6 +219,17 @@ const applyForm = reactive({
   category: '娱乐',
 })
 
+const isLoggedIn = () => Boolean(localStorage.getItem('token'))
+
+const openApply = () => {
+  if (!isLoggedIn()) {
+    ElMessage.warning('请先登录后再申请入驻')
+    router.push({ path: '/auth/login', query: { redirect: '/links' } })
+    return
+  }
+  applyVisible.value = true
+}
+
 const filteredGroups = computed(() => {
   const map = new Map()
   links.value.forEach((item) => {
@@ -274,8 +286,7 @@ const submitApply = async () => {
   try {
     await applyFriendLink({
       ...applyForm,
-      tag: '常用',
-    })
+    }, logoFile.value)
     ElMessage.success('申请已提交，等待站长审核')
     applyVisible.value = false
     Object.assign(applyForm, {
@@ -285,6 +296,10 @@ const submitApply = async () => {
       category: '娱乐',
     })
     logoPreview.value = ''
+    logoFile.value = null
+    if (logoInput.value) {
+      logoInput.value.value = ''
+    }
   } catch (error) {
     ElMessage.error(error.message || '申请提交失败，请稍后重试')
   } finally {
@@ -299,6 +314,11 @@ const handleLogoPick = (event) => {
     ElMessage.error('请选择图片文件')
     return
   }
+  if (file.size / 1024 / 1024 > 5) {
+    ElMessage.error('LOGO 大小不能超过 5MB')
+    return
+  }
+  logoFile.value = file
   logoPreview.value = URL.createObjectURL(file)
 }
 

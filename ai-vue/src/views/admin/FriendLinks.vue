@@ -79,13 +79,21 @@
         </el-form-item>
         <el-form-item label="分类标签">
           <div class="inline-grid">
-            <el-select v-model="form.category" filterable allow-create default-first-option placeholder="分类">
+            <el-select
+              v-model="form.category"
+              filterable
+              allow-create
+              default-first-option
+              placeholder="分类"
+              @change="syncTagByCategory"
+            >
               <el-option v-for="category in categories" :key="category" :label="category" :value="category" />
             </el-select>
-            <el-select v-model="form.tag" placeholder="标签">
+            <el-select v-model="form.tag" placeholder="系统标签">
               <el-option v-for="tag in tags" :key="tag" :label="tag" :value="tag" />
             </el-select>
           </div>
+          <p class="field-tip">“常用”由前台按访问次数自动展示；这里通常只需要确认分类，系统会自动归入工具/社区/灵感。</p>
         </el-form-item>
         <el-form-item label="LOGO">
           <div class="logo-editor">
@@ -98,9 +106,18 @@
         </el-form-item>
         <el-form-item label="运营数据">
           <div class="inline-grid three">
-            <el-input-number v-model="form.visits" :min="0" controls-position="right" />
-            <el-input-number v-model="form.rating" :min="0" :max="5" controls-position="right" />
-            <el-input-number v-model="form.sortOrder" controls-position="right" />
+            <label class="metric-input">
+              <span>访问次数</span>
+              <el-input-number v-model="form.visits" :min="0" controls-position="right" />
+            </label>
+            <label class="metric-input">
+              <span>评分</span>
+              <el-rate v-model="form.rating" :max="5" />
+            </label>
+            <label class="metric-input">
+              <span>排序值</span>
+              <el-input-number v-model="form.sortOrder" controls-position="right" />
+            </label>
           </div>
         </el-form-item>
         <el-form-item label="状态">
@@ -167,7 +184,7 @@ const emptyForm = () => ({
   url: '',
   description: '',
   category: '娱乐',
-  tag: '常用',
+  tag: '',
   logoUrl: '/anime-assets/liuhuaa.ico',
   visits: 0,
   rating: 4,
@@ -213,6 +230,9 @@ const fetchLinks = async () => {
 
 const openDialog = (row) => {
   Object.assign(form, emptyForm(), row || {})
+  if (!form.tag || form.tag === '常用') {
+    form.tag = inferTagByCategory(form.category)
+  }
   dialogVisible.value = true
 }
 
@@ -271,6 +291,16 @@ const uploadLogo = async ({ file }) => {
 }
 
 const resolveLogo = (url) => resolveFileUrl(url || '/anime-assets/liuhuaa.ico')
+
+const inferTagByCategory = (category = '') => {
+  if (category.includes('工具')) return '工具'
+  if (category.includes('灵感') || category.includes('设计') || category.includes('插画')) return '灵感'
+  return '社区'
+}
+
+const syncTagByCategory = () => {
+  form.tag = inferTagByCategory(form.category)
+}
 
 const previewLogo = (row) => {
   logoPreviewUrl.value = resolveLogo(row.logoUrl)
@@ -335,6 +365,26 @@ onMounted(fetchLinks)
 
   &.three {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.field-tip {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.metric-input {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+
+  span {
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 800;
   }
 }
 

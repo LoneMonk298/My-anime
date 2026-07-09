@@ -9,6 +9,7 @@
       <div class="top-clock">
         <span>{{ currentDateText }}</span>
         <strong>{{ currentTime }}</strong>
+        <FrontUserEntry />
       </div>
 
       <div class="nav-art" aria-hidden="true"></div>
@@ -32,9 +33,7 @@
           <a href="https://www.lonemonk.xyz" target="_blank" rel="noreferrer">个人主页</a>
           <a href="https://www.bilibili.com/" target="_blank" rel="noreferrer">B站官网</a>
           <a href="https://www.pixiv.net/" target="_blank" rel="noreferrer">P站官网</a>
-          <a href="https://xifan.moe" target="_blank" rel="noreferrer">稀饭动漫</a>
-          <button type="button" @click="router.push('/links')">槿篱游戏</button>
-          <button type="button" @click="goAdmin">管理后台</button>
+          <button type="button" @click="router.push('/links')">友情链接</button>
         </div>
       </nav>
 
@@ -86,7 +85,7 @@
           <p v-if="article.summary" class="summary">{{ article.summary }}</p>
         </section>
 
-        <section class="article-body" v-html="article.content || '<p>这篇记录暂时还没有正文。</p>'"></section>
+        <section class="article-body" v-html="renderArticleContent(article.content)"></section>
       </article>
 
       <section v-if="article && (previousArticle || nextArticle)" class="neighbor-section">
@@ -125,7 +124,9 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { dayjs } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
 import { getArticleCategoryTree, getArticleList, getArticleView } from '@/api/frontend'
+import FrontUserEntry from '@/components/FrontUserEntry.vue'
 import { getArticleCover, resolveFileUrl } from '@/utils/fileUrl'
+import { renderContent } from '@/utils/markdown'
 
 const route = useRoute()
 const router = useRouter()
@@ -252,9 +253,7 @@ const goArticle = (id) => {
   router.push(`/article/${id}`)
 }
 
-const goAdmin = () => {
-  router.push({ path: '/auth/login', query: { redirect: '/user/dashboard', forceLogin: '1' } })
-}
+const renderArticleContent = (content) => renderContent(content || '这篇记录暂时还没有正文。')
 
 onMounted(async () => {
   clockTimer = window.setInterval(() => {
@@ -377,6 +376,13 @@ onBeforeUnmount(() => {
   color: #dce9ff;
   font-size: 16px;
   font-weight: 700;
+}
+
+.top-clock > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .top-clock strong {
